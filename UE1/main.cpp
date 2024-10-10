@@ -1,10 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <array>
-#include <cmath>
-#include <iomanip>
+#include <cmath> // std::sqrt, pow and other math functions
+#include <iomanip> // std::setprecision 
 
-#include "SF.h"
+#include "SF.h" // various supporting functions
 
 static double function(double x)
 {
@@ -47,16 +47,21 @@ static double simpson(double(*integrand)(double x), int N, double a, double b)
 	return F;
 }
 
-static void gaussquad()
+static double gaussquad()
 {
+	double F = 0;
 
+	return F;
 }
 
 int main() { // compare to which value?
 	double a = 0;
 	double b = 1;
 	
-	double y = simpson(function, 100000, 0, 1);
-	std::cout << "y1 = " << std::setprecision(15) << y << " y2 = "  << factorial(10) << std::endl;
-	printVector(nthlegendre(3));
+	double y = simpson(function, 10, 0, 1);
+	std::cout << "y1 = " << std::setprecision(15) << y << " y2 = "  << factorial(20) << std::endl;
+	std::vector<double> j = nthlegendre(3);
+	printVector(j);
+	polydiff(j);
+	printVector(j);
 }
