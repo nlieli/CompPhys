@@ -17,7 +17,7 @@ void printVector(std::vector<T>& vector)
 	std::cout << ']' << std::endl;
 }
 
-template <typename T>
+template <typename T> // make type safe (restrict template to certain types ???)
 std::vector<T>& polydiff(std::vector<T>& polynomial)
 {
 	size_t order = polynomial.size();

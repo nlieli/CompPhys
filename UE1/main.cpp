@@ -3,6 +3,8 @@
 #include <array>
 #include <cmath> // std::sqrt, pow and other math functions
 #include <iomanip> // std::setprecision 
+#include <string_view>
+#include "matplot/matplot.h"
 
 #include "SF.h" // various supporting functions
 
@@ -58,10 +60,12 @@ int main() { // compare to which value?
 	double a = 0;
 	double b = 1;
 	
-	double y = simpson(function, 10, 0, 1);
-	std::cout << "y1 = " << std::setprecision(15) << y << " y2 = "  << factorial(20) << std::endl;
+	double f = simpson(function, 10, 0, 1);
+	std::cout << "y1 = " << std::setprecision(15) << f << " y2 = "  << factorial(20) << std::endl;
 	std::vector<double> j = nthlegendre(3);
 	printVector(j);
 	polydiff(j);
 	printVector(j);
+
+	matplot::plot(j, j);
 }
