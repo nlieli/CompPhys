@@ -4,7 +4,7 @@
 #include <cmath> // std::sqrt, pow and other math functions
 #include <iomanip> // std::setprecision 
 #include <string_view>
-#include "matplot/matplot.h"
+#include "matplot/matplot.h" // maybe plotting 
 
 #include "SF.h" // various supporting functions
 
@@ -13,7 +13,7 @@ static double function(double x)
 	return 1 / std::sqrt(1 - std::pow( x, 4));
 }
 
-static double trapezoid(double(*integrand)(double x), int N, double a, double b)
+static double trapezoid(double(*integrand)(double x), int N, double a, double b) 
 {
 	double dx = (b - a) / N;
 	double F = 0;
@@ -49,23 +49,37 @@ static double simpson(double(*integrand)(double x), int N, double a, double b)
 	return F;
 }
 
-static double gaussquad()
+static double gaussquad(double(*integrand)(double x), int N, double a, double b)
 {
 	double F = 0;
+	double chi;
+	std::vector<double> w(N);
+	std::vector<double> x(N);
+	std::vector<double> P(N + 1); // to account for x^0;
+
+	P = polyLegendre(N); // returns vector with coefficients for legendre polynomial in order [1, x, x^2, ... , x^N]
+	x = polyFindRoots(P, N, -1, 1); // boundaries -1, 1 because Legendre polynomials always have all their roots in between those boundaries
+	w = gaussLegendreWeights(x, P);  // weights for Gauss Legendre quadrature (int_a^b f(x) dx = sum_{i=1}^n wi f(xi));
+
+	for (int i = 0; i < N; ++i)
+	{
+		chi = ((b - a) / 2) * x[i] + ((a + b) / 2);
+		F = w[i] * integrand(chi); // integrand boundaries get shifted from a,b to [-1, 1] to fit Gauss Quadrature rule
+
+	}
+	F = (b - a) / 2 * F;
 
 	return F;
 }
 
-int main() { // compare to which value?
-	double a = 0;
-	double b = 1;
-	
-	double f = simpson(function, 10, 0, 1);
-	std::cout << "y1 = " << std::setprecision(15) << f << " y2 = "  << factorial(20) << std::endl;
-	std::vector<double> j = nthlegendre(3);
-	printVector(j);
-	polydiff(j);
-	printVector(j);
+int main() 
+{ // compare to which value?
+	double a = 0; // lower bound for integration
+	double b = 1; // upper bound for integration 
+	int N = 0; // number of integration range subdivisions
 
-	matplot::plot(j, j);
+	//std::cout << "y1 = " << std::setprecision(15) << f << " y2 = "  << factorial(20) << std::endl;
+	double F = gaussquad(function, 60, 0, 1);
+	std::cout << F << std::endl;
+	
 }
