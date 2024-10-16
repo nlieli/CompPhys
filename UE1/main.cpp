@@ -5,7 +5,7 @@
 #include <iomanip> // std::setprecision 
 #include <string_view>
 #include <direct.h>
-#include "matplot/matplot.h" // maybe plotting 
+#include "matplot/matplot.h"
 
 #include "SF.h" // various supporting functions
 
@@ -88,11 +88,11 @@ int main()
 	std::cout << std::setprecision(15) << "Trap = " << Ft << " Simp = " << Fs << " gauss = " << Fg << std::endl;
 
 	//const char* gnuplotPath = "PATH=C:\\CPProjects\\CompPhys\\Dependencies\\gnuplot\\bin";
-	const char* gnuplotPath = "PATH=..\\Dependencies\\gnuplot\\bin";
-	if (_putenv(gnuplotPath) == 0)
-		std::cout << "Environment variable set successfully." << std::endl;
-	else
-		std::cerr << "Failed to set environment variable." << std::endl;
+	//const char* gnuplotPath = "PATH=..\\..\\Dependencies\\gnuplot\\bin";
+	//if (_putenv(gnuplotPath) == 0)
+		//std::cout << "Environment variable set successfully." << std::endl;
+	//else
+		//std::cerr << "Failed to set environment variable." << std::endl;
 
 
 
