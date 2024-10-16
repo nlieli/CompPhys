@@ -1,13 +1,29 @@
+// general purpose
 #include <iostream>
+#include <iomanip> // std::setprecision 
+#include <direct.h>
+#include <type_traits>
+
+// math related functions and libraries
 #include <vector>
 #include "VectorMath.h" // functions for operations applied to vectors
 #include <cmath> // std::sqrt, pow and other math functions
-#include <iomanip> // std::setprecision 
-#include <string_view>
-#include <direct.h>
-#include "matplot/matplot.h"
 
-#include "SF.h" // various supporting functions
+// Graphing and plotting libraries
+#include "matplot/matplot.h"
+#include "plot.h"
+
+// various supporting functions
+#include "SF.h" 
+#include "recursive.h"
+
+// Timer in debug mode if needed
+#ifdef _DEBUG
+#define TIMER Timer timer
+#else 
+#define TIMER
+#endif
+
 
 static double function(double x)
 {
@@ -16,7 +32,6 @@ static double function(double x)
 
 static double trapezoid(double(*integrand)(double x), int N, double a, double b) 
 {
-	Timer timer;
 	double dx = (b - a) / N;
 	double F = 0;
 
@@ -29,16 +44,16 @@ static double trapezoid(double(*integrand)(double x), int N, double a, double b)
 	return F;
 }
 
-static double simpson(double(*integrand)(double x), int N, double a, double b)
+
+static double simpson(double(*integrand)(double x), int n, double a, double b)
 {
-	Timer timer;
-	double dx = (b - a) / N;
-	double F = 0;
+	double dx = (b - a) / n;
+	double f = 0;
 	double S1 = 0;
 	double S2 = 0;
 	double a0 = a;
 	
-	for (int i = 1; i < N; ++i)
+	for (int i = 1; i < n; ++i)
 	{
 		a += dx;
 		if (i % 2)
@@ -47,17 +62,17 @@ static double simpson(double(*integrand)(double x), int N, double a, double b)
 			S2 += integrand(a); // sum over even indices
 	}
 
-	F = dx / 3 * (integrand(a0) + integrand(a) + 4 * S1 + 2 * S2); // Simpson's Rule (integrand(a) sollte integrand(b) = inf sein)
+	f = dx / 3 * (integrand(a0) + integrand(a) + 4 * S1 + 2 * S2); // simpson's rule (integrand(a) sollte integrand(b) = inf sein)
 	
-	return F;
+	return f;
 }
+
 
 static double gaussquad(double(*integrand)(double x), int N, double a, double b)
 {
-	Timer timer;
 	double F = 0;
 	double chi;
-	std::vector<double> w(N);
+	std::vector<double> w(N);	
 	std::vector<double> x(N);
 	std::vector<double> P(N + 1); // to account for x^0;
 
@@ -69,7 +84,27 @@ static double gaussquad(double(*integrand)(double x), int N, double a, double b)
 	{
 		chi = ((b - a) / 2) * x[i] + ((a + b) / 2);
 		F += w[i] * integrand(chi); // integrand boundaries get shifted from a,b to [-1, 1] to fit Gauss Quadrature rule
+	}
+	F = (b - a) / 2 * F;
 
+	return F;
+}
+
+static double legendreGauss(double(*integrand)(double x), int N, double a, double b)
+{
+	double F = 0;
+	double chi;
+	std::vector<double> w(N);	
+	std::vector<double> x(N);
+	std::vector<double> P(N + 1); // to account for x^0;
+	
+	x = legendreFindRoots(N, 100, -1, 1);
+	w = legendreWeights(x, N);
+
+	for (int i = 0; i < N; ++i)
+	{
+		chi = ((b - a) / 2) * x[i] + ((a + b) / 2);
+		F += w[i] * integrand(chi); // integrand boundaries get shifted from a,b to [-1, 1] to fit Gauss Quadrature rule
 	}
 	F = (b - a) / 2 * F;
 
@@ -80,27 +115,34 @@ int main()
 { // compare to which value?
 	double a = 0; // lower bound for integration
 	double b = 1; // upper bound for integration 
-	int N = 0; // number of integration range subdivisions
-	double Ft = trapezoid(function, 40, 0, 1);
-	double Fs = simpson(function, 40, 0, 1);
-	double Fg = gaussquad(function, 36, 0, 1); // for N > 40 polyBracketing function gives wrong values
+	int N = 200; // number of integration range subdivisions
+	double trueValue = 1.311028777146120;
 	
-	std::cout << std::setprecision(15) << "Trap = " << Ft << " Simp = " << Fs << " gauss = " << Fg << std::endl;
+	std::vector<std::vector<double>> results(3, std::vector<double>(N));
+	
+	//double f = gaussquad(function, 40, a, b);
+	//std::cout << f << std::endl;
+	for (int i = 1; i < N; ++i)
+	{
+		results[0][i] = trapezoid(function, i, a, b);
+		results[1][i] = simpson(function, i, a, b);
+		results[2][i] = legendreGauss(function, i, a, b); // for N > 40 polyBracketing function gives wrong values
+	}	
 
-	//const char* gnuplotPath = "PATH=C:\\CPProjects\\CompPhys\\Dependencies\\gnuplot\\bin";
-	//const char* gnuplotPath = "PATH=..\\..\\Dependencies\\gnuplot\\bin";
-	//if (_putenv(gnuplotPath) == 0)
-		//std::cout << "Environment variable set successfully." << std::endl;
-	//else
-		//std::cerr << "Failed to set environment variable." << std::endl;
+	plotResults(results);
 
+	//int N = 350;
+	//double f = legendreGauss(function, N, a, b);
+	//double f = legendrePrimeEval(3, -0.774596);
+	//std::cout << std::setprecision(15) << f << std::endl;
 
+	//std::vector<double> x = matplot::linspace(-1, 1, 10000);
+	//std::vector<double> y(x.size());
+	//for (size_t i = 0; i < x.size(); ++i)
+		//y[i] = legendreEval(1000, x[i]);
 
-	std::vector<double> y = { 1, 2, 3, 4 };
-	std::vector<double> x = y;
-
-	matplot::plot(x, y);
-	matplot::show();
+	//matplot::plot(x, y);
+	//matplot::show();
 
 
 }

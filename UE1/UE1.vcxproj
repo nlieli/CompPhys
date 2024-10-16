@@ -141,13 +141,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="bracketInstance.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="plot.cpp" />
+    <ClCompile Include="recursive.cpp" />
     <ClCompile Include="SF.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bracketInstance.h" />
     <ClInclude Include="matplotlibcpp.h" />
+    <ClInclude Include="plot.h" />
+    <ClInclude Include="recursive.h" />
     <ClInclude Include="SF.h" />
     <ClInclude Include="VectorMath.h" />
   </ItemGroup>

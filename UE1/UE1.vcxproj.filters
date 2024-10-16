@@ -21,7 +21,10 @@
     <ClCompile Include="SF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bracketInstance.cpp">
+    <ClCompile Include="plot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="recursive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,10 +35,13 @@
     <ClInclude Include="SF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bracketInstance.h">
+    <ClInclude Include="VectorMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VectorMath.h">
+    <ClInclude Include="plot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="recursive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
