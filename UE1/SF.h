@@ -1,15 +1,28 @@
 #pragma once
 #include <vector>
+#include "VectorMath.h"
 #include <iostream>
 #include <type_traits> // for type safety
+#include <chrono>
 
 // functions labeled "polyXXX" are functions that return the coefficients of the polynomial in the order: [1, x, x^2, ...] 
 
 // --- general 
 
 unsigned long long int factorial(unsigned int x);
+double factorialCrazy(double x);
 
 unsigned long long int nCr(unsigned long long int n, unsigned long long int r);
+
+struct Timer
+{
+	std::chrono::time_point<std::chrono::steady_clock> start, end;
+	std::chrono::duration<float> duration;
+
+	Timer();
+
+	~Timer();
+};
 
 // --- main SF.cpp function
 
@@ -19,9 +32,11 @@ std::vector<double> polyFindRoots(std::vector<double>& function, int N, double a
 
 std::vector<double> polyLegendre(int n); // n = n-th order legendre polynomial, 
 
+std::vector<double> polyLegendreRec(int n); // n-th order legendre polynomial calculated recursively
+
 std::vector<double> gaussLegendreWeights(std::vector<double> xi, std::vector<double> legendrePolynomial);
 
-std::vector<double> polyBracketing(std::vector<double>& function, double a, double b);
+std::vector<double> polyBracketing(std::vector<double>& function, double a, double b); // function = polynomial in vector form, a = lower bound search area, b = upper bound search area
 
 bool polyBrackSearch(std::vector<double>& function, double a, double b);
 
@@ -64,120 +79,6 @@ std::vector<T> polyDiff(std::vector<T> polynomial)
 	return polynomial;
 }
 
-template <typename T>
-std::vector<T> vectorAdd(std::vector<T> v1, std::vector<T> v2) // Addition of two vectors
-{
-	static_assert(v1.size() == v2.size(), "Vectors must be the same length");
-	size_t length = v1.size();
-	for (size_t i = 0; i < length; ++i)
-		v1[i] += v2[i];
-	return v1;
-}
-
-template <typename T>
-std::vector<T> operator+(std::vector<T> v1, std::vector<T> v2) // Overload for vector addition	
-{
-	return vectorAdd(v1, v2);
-}
-
-template <typename T>
-std::vector<T> vectorSub(std::vector<T> v1, std::vector<T> v2) // Subtraction of two vectors follows common order 
-{
-	static_assert(v1.size() == v2.size(), "Vectors must be the same length");
-	size_t length = v1.size();
-	for (size_t i = 0; i < length; ++i)
-		v1[i] -= v2[i];
-	return v1;
-}
-
-template <typename T>
-std::vector<T> operator-(std::vector<T> v1, std::vector<T> v2) // Overload for vector subtraction
-{
-	return vectorSub(v1, v2);
-}
-
-template <typename T>
-std::vector<T> vectorMultiply(std::vector<T> vector, T scalar)
-{
-	size_t length = vector.size();
-	for (size_t i = 0; i < length; ++i)
-		vector[i] *= scalar;
-
-	return vector;
-}
-
-template <typename T>
-std::vector<T> vectorMultiply(T scalar, std::vector<T> vector)
-{
-	size_t length = vector.size();
-	for (size_t i = 0; i < length; ++i)
-		vector[i] *= scalar;
-
-	return vector;
-}
-
-template <typename T>
-std::vector<T> operator*(std::vector<T> vector, T scalar)
-{
-	return vectorMultiply(vector, scalar);
-}
-
-template <typename T>
-std::vector<T> operator*(T scalar, std::vector<T> vector)
-{
-	return vectorMultiply(scalar, vector);
-}
-
-template <typename T>
-std::vector<T> vectorDiv(std::vector<T> vector, T scalar)
-{
-	size_t length = vector.size();
-	for (size_t i = 0; i < length; ++i)
-		vector[i] /= scalar;
-	
-	return vector;
-}
-
-template <typename T>
-std::vector<T> operator/(std::vector<T> vector, T scalar)
-{
-	return vectorDiv(vector, scalar);
-}
-
-template <typename T>
-std::vector<T> vectorShiftRight(std::vector<T> vector)
-{
-	size_t length = vector.size();
-	if (length == 0) return vector;
-
-	for (size_t i = length; i > 0; --i)
-		vector[i] = vector[i - 1];
-
-	vector[0] = 0;
-	return vector;
-}
-
-template <typename T>
-std::vector<T> operator>>(std::vector<T> vector, int)
-{
-	return vectorShiftRight(vector);
-}
-
-template <typename T>
-std::vector<T> vectorShiftLeft(std::vector<T> vector)
-{
-	size_t length = vector.size();
-	for (size_t i = 1; i < length; ++i)
-		vector[i - 1] = vector[i];
-
-	vector[length - 1] = 0;
-}
-
-template <typename T>
-std::vector<T> operator<<(std::vector<T> vector, int)
-{
-	return vectorShiftLeft(vector);
-}
 
 
 

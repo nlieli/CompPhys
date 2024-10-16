@@ -1,4 +1,5 @@
 #include <vector>
+#include "VectorMath.h"
 #include <iostream>
 #include <cmath>
 #include "SF.h"
@@ -6,6 +7,22 @@
 double dx = 1e-4;
 
 // functions labeled "polyXXX" are functions that return the coefficients of the polynomial in the order: [1, x, x^2, ...] 
+
+Timer::Timer()
+{
+	start = std::chrono::high_resolution_clock::now();
+	duration = std::chrono::duration<float> (0.0f);
+	end = start;
+}
+
+Timer::~Timer()
+{
+	end = std::chrono::high_resolution_clock::now();
+	duration = end - start;
+
+	float ms = duration.count() * 1000.0f;
+	std::cout << "Timer took " << ms << "ms " << std::endl;
+}
 
 unsigned long long int factorial(unsigned int x) // replace with gamma function ?? 
 {
@@ -57,11 +74,15 @@ std::vector<double> polyLegendreRec(int n) // recursive function
 	if (n == 1)
 		return Pn;
 
-	for (int i = 0; i < n; ++i)
+	for (int i = 1; i < n; ++i)
 	{
-		Pnx = vectorMultiply(2 * n + 1, vectorShiftRight(Pn)); // -vectorMultiply(n, Pn_) / (n + 1);
+		// Pnx = vectorDiv(vectorSub(vectorMultiply(2 * i + 1, vectorShiftRight(Pn)), vectorMultiply(Pn_, i)), i + 1);
+		Pnx = (((2 * i + 1) * Pn >> 1) - (i * Pn_)) / (i + 1);
+		Pn_ = Pn;
+		Pn = Pnx;
 	}
 
+	return Pnx;
 }
 
 double polyNewtonRaphson(std::vector<double>& function, int N, double x0) // N = number of iterations, x0 = first guess
@@ -76,7 +97,7 @@ double polyNewtonRaphson(std::vector<double>& function, int N, double x0) // N =
 	return x0;
 }
 
-std::vector<double> polyBracketing(std::vector<double>& function, double a, double b) // function = polynomial in vector form, a = lower bound search area, b = upper bound search area
+std::vector<double> polyBracketing(std::vector<double>& function, double a, double b) // breaks down for higher orders - fix????
 {
 	std::vector<double> guess;
 	for (double i = 0; (a + i) < b; i += dx)
