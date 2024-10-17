@@ -115,7 +115,7 @@ int main()
 { // compare to which value?
 	double a = 0; // lower bound for integration
 	double b = 1; // upper bound for integration 
-	int N = 200; // number of integration range subdivisions
+	int N = 40; // number of integration range subdivisions
 	double trueValue = 1.311028777146120;
 	
 	std::vector<std::vector<double>> results(3, std::vector<double>(N));
@@ -125,11 +125,19 @@ int main()
 	for (int i = 1; i < N; ++i)
 	{
 		results[0][i] = trapezoid(function, i, a, b);
-		results[1][i] = simpson(function, i, a, b);
 		results[2][i] = legendreGauss(function, i, a, b); // for N > 40 polyBracketing function gives wrong values
 	}	
+	
+	int j = 0;
 
-	plotResults(results);
+	for (int i = 1; i < 2*N; i += 2)
+	{
+		results[1][j] = simpson(function, i, a, b);
+		j += 1;
+	}
+
+
+	plotResults(results); // error somewhere in here
 
 	//int N = 350;
 	//double f = legendreGauss(function, N, a, b);

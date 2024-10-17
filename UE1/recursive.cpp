@@ -44,10 +44,14 @@ std::vector<double> legendreFindRoots(int N, int RIT, double a, double b)
 	for (size_t i = 0; i < numberOfRoots; ++i)
 		result[i] = legendreNewtonRaphson(N, RIT, guess[i]);
 
-	for (size_t i = 0; i < numberOfRoots - 2; ++i)
+	for (size_t i = 0; i < numberOfRoots - 1; ++i)
 	{
 		if (result[i] == result[i + 1])
+		{
 			result.erase(result.begin() + i);
+			numberOfRoots -= 1;
+			i -= 1;
+		}
 	}
 
 	return result;
