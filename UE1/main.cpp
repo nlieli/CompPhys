@@ -88,7 +88,7 @@ int main()
 	std::cout << std::setprecision(15) << "Trap = " << Ft << " Simp = " << Fs << " gauss = " << Fg << std::endl;
 
 	//const char* gnuplotPath = "PATH=C:\\CPProjects\\CompPhys\\Dependencies\\gnuplot\\bin";
-	const char* gnuplotPath = "PATH=..\\Dependencies\\gnuplot\\bin";
+	const char* gnuplotPath = "PATH=..\\..\\Dependencies\\gnuplot\\bin";
 	if (_putenv(gnuplotPath) == 0)
 		std::cout << "Environment variable set successfully." << std::endl;
 	else
