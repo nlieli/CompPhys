@@ -137,7 +137,7 @@ int main()
 	}
 
 
-	plotResults(results); // error somewhere in here
+	plotResults(results); 
 
 	//int N = 350;
 	//double f = legendreGauss(function, N, a, b);
