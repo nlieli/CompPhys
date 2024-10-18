@@ -2,6 +2,70 @@
 #include <vector>
 #include <stdexcept>
 
+template <typename T, typename B>
+std::vector<T> vectorScalarAdd(std::vector<T> vector, B scalar)
+{
+	size_t length = vector.size();
+	for (size_t i = 0; i < length; ++i)
+		vector[i] += scalar;
+
+	return vector;
+}
+
+template <typename T, typename B>
+std::vector<T> vectorScalarAdd(B scalar, std::vector<T> vector)
+{
+	size_t length = vector.size();
+	for (size_t i = 0; i < length; ++i)
+		vector[i] += scalar;
+
+	return vector;
+}
+
+template <typename T, typename B>
+std::vector<T> operator+(std::vector<T> vector, B scalar)
+{
+	return vectorScalarAdd(vector, scalar);
+}
+
+template <typename T, typename B>
+std::vector<T> operator+(B scalar, std::vector<T> vector)
+{
+	return vectorScalarAdd(scalar, vector);
+}
+
+template <typename T, typename B>
+std::vector<T> vectorScalarSub(std::vector<T> vector, B scalar)
+{
+	size_t length = vector.size();
+	for (size_t i = 0; i < length; ++i)
+		vector[i] = scalar - vector[i];
+
+	return vector;
+}
+
+template <typename T, typename B>
+std::vector<T> vectorScalarSub(B scalar, std::vector<T> vector)
+{
+	size_t length = vector.size();
+	for (size_t i = 0; i < length; ++i)
+		vector[i] = scalar - vector[i];
+
+	return vector;
+}
+
+template <typename T, typename B>
+std::vector<T> operator-(std::vector<T> vector, B scalar)
+{
+	return vectorScalarSub(vector, scalar);
+}
+
+template <typename T, typename B>
+std::vector<T> operator-(B scalar, std::vector<T> vector)
+{
+	return vectorScalarSub(scalar, vector);
+}
+
 template <typename T>
 std::vector<T> vectorAdd(std::vector<T> v1, std::vector<T> v2) // Addition of two vectors
 {

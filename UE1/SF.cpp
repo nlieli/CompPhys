@@ -24,7 +24,7 @@ Timer::~Timer()
 	std::cout << "Timer took " << ms << "ms " << std::endl;
 }
 
-unsigned long long int factorial(unsigned int x) // replace with gamma function ?? 
+unsigned long long int factorial(unsigned int x) 
 {
 	unsigned long long int y = 1;
 
@@ -34,7 +34,7 @@ unsigned long long int factorial(unsigned int x) // replace with gamma function 
 	return y;
 }
 
-double factorialCrazy(double x) // HOW ACCURATE IS THIS THING ?!??!?!??!
+double factorialCrazy(double x) 
 {
 	double factorial = 1;
 	if (x == 0)
@@ -97,13 +97,17 @@ double polyNewtonRaphson(std::vector<double>& function, int N, double x0) // N =
 	return x0;
 }
 
-std::vector<double> polyBracketing(std::vector<double>& function, double a, double b) // breaks down for higher orders - fix????
+std::vector<double> polyBracketing(std::vector<double>& function, double a, double b) 
 {
 	std::vector<double> guess;
-	for (double i = 0; (a + i) < b; i += dx)
+	double i = a;
+	for (double j = a; j < b; j += dx)
 	{
-		if (polyBrackSearch(function, a + i, a + i + dx))
-			guess.push_back(a + i + dx / 2);
+		if (polyBrackSearch(function, i, j))
+		{
+			guess.push_back(i + dx / 2);
+		}
+		i = j;
 	}
 
 	return guess;
@@ -127,7 +131,7 @@ std::vector<double> polyFindRoots(std::vector<double>& function, int N, double a
 	std::vector<double> result(numberOfRoots);
 
 	for (size_t i = 0; i < numberOfRoots; ++i)
-		result[i] = polyNewtonRaphson(function, N, guess[i]);
+		result[i] = polyNewtonRaphson(function, 10, guess[i]);
 
 	return result;
 }

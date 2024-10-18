@@ -2,7 +2,6 @@
 #include <vector>
 #include "VectorMath.h"
 #include <iostream>
-#include <type_traits> // for type safety
 #include <chrono>
 
 // functions labeled "polyXXX" are functions that return the coefficients of the polynomial in the order: [1, x, x^2, ...] 
@@ -43,6 +42,12 @@ bool polyBrackSearch(std::vector<double>& function, double a, double b);
 
 // -- templated functions
 
+template <typename T>
+struct is_vector : std::false_type {}; // helper functions that determine if input is of type std::vector<T>
+
+template <typename T>
+struct is_vector<std::vector<T>> : std::true_type {};
+
 template <typename T> 
 void printVector(std::vector<T>& vector)
 {
@@ -58,9 +63,14 @@ double polyEval(std::vector<A> polynomial, B x)
 	static_assert(std::is_arithmetic<A>::value && std::is_arithmetic<B>::value, "Polynomials must contain values of arithmetic type");
 	double result = 0;
 	size_t order = polynomial.size();
-	for (size_t i = 0; i < order; ++i)
+	//for (size_t i = 0; i < order; ++i)
+	//{
+		//result += polynomial[i] * std::pow(x, i);
+	//}
+
+	for (size_t i = order; i > 0; --i)
 	{
-		result += polynomial[i] * std::pow(x, i);
+		result = result * x + polynomial[i - 1];
 	}
 	
 	return result;

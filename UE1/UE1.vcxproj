@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\Root\include;$(SolutionDir)\Dependencies\Matplot++\include;$(ProjectDir)\Header Files;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\Matplot++\include;$(ProjectDir)\Header Files;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
@@ -127,7 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\Root\include;$(SolutionDir)\Dependencies\Matplot++\include;$(ProjectDir)\Header Files;C:\Users\Nöno\Desktop\Misc\Python\Lib\site-packages\numpy\core\include;C:\Users\Nöno\Desktop\Misc\Python\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\Matplot++\include;$(ProjectDir)\Header Files;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -136,18 +136,20 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\Matplot++\lib\Matplot++;$(SolutionDir)\Dependencies\Matplot++\lib;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\Matplot++\lib\Matplot++;$(SolutionDir)\Dependencies\Matplot++\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>matplot.lib;nodesoup.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="bracketInstance.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="plot.cpp" />
+    <ClCompile Include="recursive.cpp" />
     <ClCompile Include="SF.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bracketInstance.h" />
     <ClInclude Include="matplotlibcpp.h" />
+    <ClInclude Include="plot.h" />
+    <ClInclude Include="recursive.h" />
     <ClInclude Include="SF.h" />
     <ClInclude Include="VectorMath.h" />
   </ItemGroup>
