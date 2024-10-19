@@ -2,6 +2,16 @@
 #include <vector>
 #include <stdexcept>
 
+template <typename T>
+std::vector<T> abs(std::vector<T> vector)
+{
+	size_t length = vector.size();
+	for (size_t i = 0; i < length; ++i)
+		vector[i] = abs(vector[i]);
+
+	return vector;
+}
+
 template <typename T, typename B>
 std::vector<T> vectorScalarAdd(std::vector<T> vector, B scalar)
 {

@@ -19,16 +19,16 @@ void plotResults(std::vector<std::vector<double>> Matrix)
 		sn[i] = i;
 	}
 
-	Matrix[0] = Matrix[0] - trueValue;
-	Matrix[1] = Matrix[1] - trueValue;
-	Matrix[2] = Matrix[2] - trueValue;
+	Matrix[0] = abs(Matrix[0] - trueValue);
+	Matrix[1] = abs(Matrix[1] - trueValue);
+	Matrix[2] = abs(Matrix[2] - trueValue);
 	
-	printVector(Matrix[0]);
+	//printVector(Matrix[0]);
 
-	//matplot::plot(n, Matrix[0]);
-	//matplot::hold(matplot::on);
-	//matplot::plot(sn, Matrix[1]);
-	//matplot::plot(n, Matrix[2]);
-	//matplot::show();
+	matplot::plot(n, Matrix[0]);
+	matplot::hold(matplot::on);
+	matplot::plot(sn, Matrix[1]);
+	matplot::plot(n, Matrix[2]);
+	matplot::show();
 
 }

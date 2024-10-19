@@ -30,12 +30,17 @@ static double function(double x)
 	return 1 / std::sqrt(1 - std::pow( x, 4));
 }
 
+static double T_integrand(double(*potential)(double x), double a, double x)
+{
+	return 1 / std::sqrt(potential(a) - potential(x));
+}
+
 static double trapezoid(double(*integrand)(double x), int N, double a, double b) 
 {
 	double dx = (b - a) / N;
 	double F = 0;
 
-	for (int i = 1; i < N; ++i)
+	for (int i = 1; i <= N; ++i)
 	{
 		F += dx / 2 * (integrand(a) + integrand(a + dx));
 		a += dx;
@@ -67,29 +72,6 @@ static double simpson(double(*integrand)(double x), int n, double a, double b)
 	return f;
 }
 
-
-static double gaussquad(double(*integrand)(double x), int N, double a, double b)
-{
-	double F = 0;
-	double chi;
-	std::vector<double> w(N);	
-	std::vector<double> x(N);
-	std::vector<double> P(N + 1); // to account for x^0;
-
-	P = polyLegendreRec(N); // returns vector with coefficients for legendre polynomial in order [1, x, x^2, ... , x^N]
-	x = polyFindRoots(P, N, -1, 1); // boundaries -1, 1 because Legendre polynomials always have all their roots in between those boundaries
-	w = gaussLegendreWeights(x, P);  // weights for Gauss Legendre quadrature (int_a^b f(x) dx = sum_{i=1}^n wi f(xi));
-
-	for (int i = 0; i < N; ++i)
-	{
-		chi = ((b - a) / 2) * x[i] + ((a + b) / 2);
-		F += w[i] * integrand(chi); // integrand boundaries get shifted from a,b to [-1, 1] to fit Gauss Quadrature rule
-	}
-	F = (b - a) / 2 * F;
-
-	return F;
-}
-
 static double legendreGauss(double(*integrand)(double x), int N, double a, double b)
 {
 	double F = 0;
@@ -114,18 +96,16 @@ static double legendreGauss(double(*integrand)(double x), int N, double a, doubl
 int main() 
 { // compare to which value?
 	double a = 0; // lower bound for integration
-	double b = 1; // upper bound for integration 
-	int N = 40; // number of integration range subdivisions
+	double b = 0.999; // upper bound for integration 
+	int N = 100; // number of integration range subdivisions
 	double trueValue = 1.311028777146120;
 	
 	std::vector<std::vector<double>> results(3, std::vector<double>(N));
 	
-	//double f = gaussquad(function, 40, a, b);
-	//std::cout << f << std::endl;
-	for (int i = 1; i < N; ++i)
+	for (int i = 1; i < N - 1; ++i)
 	{
-		results[0][i] = trapezoid(function, i, a, b);
-		results[2][i] = legendreGauss(function, i, a, b); // for N > 40 polyBracketing function gives wrong values
+		results[0][i - 1] = trapezoid(function, i, a, b);
+		results[2][i - 1] = legendreGauss(function, i, a, b); // for N > 40 polyBracketing function gives wrong values
 	}	
 	
 	int j = 0;
@@ -135,6 +115,14 @@ int main()
 		results[1][j] = simpson(function, i, a, b);
 		j += 1;
 	}
+
+	printVector(results[0]);
+	printVector(results[1]);
+	printVector(results[2]);
+
+	T_integrand(cosh, 2, 3);
+	T_integrand(exp, abs(a), abs(3));
+	T_integrand([] (double x) {return -cos(x); }, a, 3);
 
 
 	plotResults(results); 
