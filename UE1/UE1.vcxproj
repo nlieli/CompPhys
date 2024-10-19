@@ -147,7 +147,6 @@
     <ClCompile Include="SF.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="matplotlibcpp.h" />
     <ClInclude Include="plot.h" />
     <ClInclude Include="recursive.h" />
     <ClInclude Include="SF.h" />

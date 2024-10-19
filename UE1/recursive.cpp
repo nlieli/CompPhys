@@ -1,7 +1,9 @@
 #include "recursive.h"
 #include <vector>
+#include <immintrin.h>
+#include "SF.h"
 
-double dx1 = 1e-4;
+double dx1 = 1e-5;
 
 std::vector<double> legendreBracketing(int N, double a, double b)
 {
@@ -29,7 +31,7 @@ bool legendreBrackSearch(int N, double a, double b)
 	if ((y1 * y2) < 0)
 		return true;
 
-	if (abs(y1) < epsilon || abs(y2) < epsilon)
+	if (std::abs(y1) < epsilon || std::abs(y2) < epsilon)
 		return true;
 
 	return false;
@@ -40,13 +42,16 @@ std::vector<double> legendreFindRoots(int N, int RIT, double a, double b)
 	std::vector<double> guess = legendreBracketing(N, a, b);
 	size_t numberOfRoots = guess.size();
 	std::vector<double> result(numberOfRoots);
+	double epsilon = 1e-100;
+	double proximityCheck = 0;
 
 	for (size_t i = 0; i < numberOfRoots; ++i)
 		result[i] = legendreNewtonRaphson(N, RIT, guess[i]);
 
 	for (size_t i = 0; i < numberOfRoots - 1; ++i)
 	{
-		if (result[i] == result[i + 1])
+		proximityCheck = result[i] - result[i + 1];
+		if (std::abs(proximityCheck) < epsilon)
 		{
 			result.erase(result.begin() + i);
 			numberOfRoots -= 1;

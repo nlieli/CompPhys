@@ -23,12 +23,11 @@ void plotResults(std::vector<std::vector<double>> Matrix)
 	Matrix[1] = abs(Matrix[1] - trueValue);
 	Matrix[2] = abs(Matrix[2] - trueValue);
 	
-	//printVector(Matrix[0]);
-
-	matplot::plot(n, Matrix[0]);
+	matplot::semilogy(n, Matrix[0]);
 	matplot::hold(matplot::on);
-	matplot::plot(sn, Matrix[1]);
-	matplot::plot(n, Matrix[2]);
+	matplot::semilogy(sn, Matrix[1]);
+	matplot::semilogy(n, Matrix[2]);
+	matplot::legend({"Trapezoid", "Simpson", "Gaussian Quadrature"});
 	matplot::show();
 
 }

@@ -2,6 +2,20 @@
 #include <vector>
 #include <stdexcept>
 
+template <typename T, typename B, typename C>
+std::vector<double> linspace(T a, B b, C n = 0)
+{
+	if (n == 0) n = b - a;
+
+	double increment = (double)(b - a) / n;
+	std::vector<double> vector(n);
+
+	for (int i = 0; i < n; ++i)
+		vector[i] = a + i * increment;
+
+	return vector;
+}
+
 template <typename T>
 std::vector<T> abs(std::vector<T> vector)
 {

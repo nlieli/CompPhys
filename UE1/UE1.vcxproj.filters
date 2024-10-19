@@ -29,9 +29,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="matplotlibcpp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SF.h">
       <Filter>Header Files</Filter>
     </ClInclude>

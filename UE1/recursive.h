@@ -26,7 +26,7 @@ T legendreEval(int N, T x)
 
 	if (N == 1)
 		return Pn;
-
+	
 	for (int i = 1; i < N; ++i)
 	{
 		Pnx = ((2 * i + 1) * x * Pn - i * Pn_) / (i + 1);
