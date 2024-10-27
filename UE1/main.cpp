@@ -16,6 +16,7 @@
 // various supporting functions
 #include "SF.h" 
 #include "recursive.h"
+#include <random> // pseudo random device
 
 // Timer in debug mode if needed
 #ifdef _DEBUG
@@ -27,7 +28,10 @@
 double SINGULARITY_ERROR_TERM = 1e-5; // smaller term worsens error for small N but can increase accuracy for large N
 namespace ct
 {
-	const double pi = 3.1415926535897932;
+	const double PI = 3.1415926535897932;
+	const double EARTH_MASS_KG = 5.97219e24;
+	const double SUN_MASS_KG = 1.9891e30;
+	const double DISTANCE_EARTH_SUN_METERS = 149e6;
 }
 
 // ---------- 1a) specific functions ----------
@@ -51,10 +55,10 @@ static double V3(double x) { return -std::cos(x); }
 // ---------- 1c) specific functions ----------
 static double T1c_integrand(double(*potential)(double x), double a, double k, double x)
 {
-	return 1 / std::sqrt(potential(a) - potential(k * x));
+	return 1 / std::sqrt(potential(k * a) - potential(k * x));
 }
 
-static double Vt(double x) { return std::tanh(x); }
+static double Vt(double x) { return (std::sinh(x)); }
 
 // ---------- general purpose functions ----------
 static double trapezoid(std::function<double(double)> integrand, int N, double a, double b)
@@ -72,17 +76,17 @@ static double trapezoid(std::function<double(double)> integrand, int N, double a
 	return F * dx;
 }
 
-static double simpson(std::function<double(double)> integrand, int n, double a, double b)
+static double simpson(std::function<double(double)> integrand, int N, double a, double b)
 {
 	if (isinf(integrand(a))) a += SINGULARITY_ERROR_TERM;
 	if (isinf(integrand(b))) b -= SINGULARITY_ERROR_TERM;
-	double dx = (b - a) / n;
+	double dx = (b - a) / N;
 	double f = 0;
 	double S1 = 0;
 	double S2 = 0;
 	double a0 = a;
 	
-	for (int i = 1; i < n; ++i)
+	for (int i = 1; i < N; ++i)
 	{
 		a += dx;
 		if (i % 2)
@@ -120,10 +124,11 @@ static double legendreGauss(std::function<double(double)> integrand, int N, doub
 int main() 
 { 
 	// ---------- 1a) ----------
-	{ /*
+	{ 
 		double a = 0; // lower bound for integration
 		double b = 1; // upper bound for integration 
 		int N = 100; // number of integration range subdivisions
+		double trueValue = 1.311028777146120;
 
 		std::vector<std::vector<double>> results(3, std::vector<double>(N));
 
@@ -140,12 +145,31 @@ int main()
 			j += 1;
 		}
 
-		plotResults(results);
-		*/
+		//plotResults(results);
+		
+		results[0] = abs(results[0] - trueValue); // trap
+		results[1] = abs(results[1] - trueValue); // simp
+		results[2] = abs(results[2] - trueValue); // gauss
+
+		std::vector<double> GTiterations = linspace(0, results[0].size(), 0); // 0 means step width of int 1
+		std::vector<double> simpIterations = linspace(0, results[1].size(), 0); // simpson is different lenght because only even Ns allowed
+
+#ifdef NDEBUG
+		{
+			using namespace matplot;
+			semilogy(GTiterations, results[0]);
+			hold(on);
+			semilogy(simpIterations, results[1]);
+			semilogy(GTiterations, results[2]);
+			auto lg = matplot::legend({ "Trapezoid", "Simpson", "Gaussian Quadrature" });
+			lg->font_name("Arial");
+			title("1a)");
+		}
+#endif
 	}
 	// ---------- 1b) ----------
-	{ /*
-		std::vector<double> a = linspace(0, ct::pi, 100);
+	{ 
+		std::vector<double> a = linspace(0, ct::PI, 100);
 		size_t length = a.size();
 		std::vector<double> Ta1(length);
 		std::vector<double> Ta2(length);
@@ -159,73 +183,156 @@ int main()
 			Ta3[i] = legendreGauss([ap](double x) {return T1b_integrand(V3, ap, x); }, 10, 0, ap);
 		}
 
-		matplot::figure();
-		matplot::plot(a, Ta1);
-		matplot::hold(matplot::on);
-		matplot::plot(a, Ta2);
-		matplot::plot(a, Ta3);
-		matplot::legend({ "cosh(x)", "exp(|x|)", "-cos(x)" });
-		matplot::show();
-		*/	
+#ifdef NDEBUG
+		{
+			using namespace matplot;
+			figure();
+			plot(a, Ta1);
+			hold(matplot::on);
+			plot(a, Ta2);
+			plot(a, Ta3);
+			auto lg = matplot::legend({ "cosh(x)", "exp(|x|)", "-cos(x)" });
+			lg->font_name("Arial");
+			title("1b");
+		}
+#endif	
 	}
 	// ---------- 1c) ----------
-	{
+	{ 
 		double a = 1;
 		double kp;
-		std::vector<double> k = linspace(-20, 0, 100);
+		std::vector<double> k = linspace(0, 10, 100);
 		size_t length = k.size();
 		std::vector<double> Ta(length);
 		std::vector<double> Ta2(length);
+		std::vector<double> TaR(length);
 
 		for (int i = 0; i < length; ++i)
 		{
 			kp = k[i];
 			Ta[i] = legendreGauss([a, kp](double x) {return T1c_integrand(Vt, a, kp, x); }, 10, 0, a);
 			Ta2[i] = legendreGauss([a, kp](double x) {return T1c_integrand(Vt, a / 2, kp, x); }, 10, 0, a / 2);
+			TaR[i] = Ta[i] / Ta2[i];
 		}
 		
 		printVector(k);
 		printVector(Ta);
-		matplot::figure();
-		matplot::plot(k, Ta);
-		matplot::hold(matplot::on);
-		matplot::plot(k, Ta2);
-		matplot::show();
+
+#ifdef NDEBUG
+		{
+			using namespace matplot;
+			figure();
+			plot(k, Ta);
+			hold(matplot::on);
+			plot(k, Ta2);
+			title("1c) 1");
+
+			figure();
+			plot(k, TaR);
+			title("1c) 2");
+		}
+#endif
 	}
-
-
-	/*
-	double mu = 3e-6;
-	std::vector<double> f = {-mu, 2 * mu, -mu, (3 - 2 * mu), (mu - 3), 1};
-	std::vector<double> x = matplot::linspace(-1, 2);
-	std::vector<double> y(x.size());
-	std::vector<double> roots;
-
-	for (int i = 0; i < x.size(); ++i) 
+	// ---------- 2) ----------
 	{
-		y[i] = polyEval(f, x[i]);
+		const int iterations = 16;
+		const double trueValue = 0.009969265283747;
+		const double mu = ct::EARTH_MASS_KG / (ct::EARTH_MASS_KG + ct::SUN_MASS_KG);
+		std::vector<double> quintic = { -mu, 2 * mu, -mu, (3 - 2 * mu), (mu - 3), 1 };
+
+		std::vector<std::array<double, 2>> interval = polyBracketingInterval(quintic, -10, 10); // vector in case there are more than one root
+		//std::vector<std::array<double, 2>> interval = { {-10, 10} }; // adjust values to edit initial guess
+		size_t numberOfRoots = interval.size();
+		std::vector<std::array<double, iterations>> newtonResult(numberOfRoots);
+		std::vector<std::array<double, iterations>> bisectionResult(numberOfRoots);
+		std::array<double, iterations> bisectionRoot; // approximation of root for each iteration
+		std::array<double, iterations> newtonRoots;
+
+		for (size_t i = 0; i < numberOfRoots; ++i)
+		{
+			for (int j = 0; j < iterations; ++j)
+			{
+				newtonRoots[j] = polyNewtonRaphson(quintic, j, (interval[i][0] + interval[i][1]) / 2);
+				bisectionRoot[j] = polyBisection(quintic, j, interval[i]);
+			}
+
+			newtonResult[i] = newtonRoots; // for each root, all approximations are stored in an array
+			bisectionResult[i] = bisectionRoot;
+		}
+		double lagrangePoint = newtonResult[0][iterations - 1] * ct::DISTANCE_EARTH_SUN_METERS;
+		std::cout << "Lagrange Point is at: " <<  lagrangePoint << " m from earth" << std::endl;
+		
+		std::cout << "Newton Root Convergence: " << std::endl;
+		print(newtonResult[0] - trueValue);
+
+		std::cout << "Bisection Root Convergence: " << std::endl;
+		print(bisectionResult[0] - trueValue);
+
+#ifdef NDEBUG
+		{
+			using namespace matplot;
+			std::vector<double> n = linspace(0, iterations, 0);
+			std::array<double, iterations> newton = arrayLog10(abs(newtonResult[0] - trueValue));
+			std::array<double, iterations> bisection = arrayLog10(abs(bisectionResult[0] - trueValue));
+
+			figure();
+			plot(n, newton);
+			hold(on);
+			plot(n, bisection);
+			auto lg = matplot::legend({ "Newton", "Bisection" });
+			lg->font_name("Arial");
+			xlabel("iteration");
+			ylabel("Error / ln(|x - x_t|)");
+			title("2a)");
+
+			figure();
+			plot(newton, arrayShiftLeft(newton)); // needs to be made more pretty
+			title("2b)");
+		}
+#endif
+	}
+	// ---------- 3) ----------
+	{
+		const int iterations = 1000;
+		std::random_device rd;
+		std::uniform_real_distribution<double> distribution(0, 1);
+		std::vector<std::vector<double>> rootMatrix;
+		rootMatrix.reserve(iterations);
+		int numberOfRoots = 0;
+
+		std::cout << "Loading... " << std::endl;
+		for (int i = 0; i < iterations; ++i)
+		{
+			std::vector<double> polynomial(6);
+			for (double& value : polynomial)
+				value = distribution(rd);
+
+			std::vector<double> roots = polyFindRoots(polynomial, 10, -10, 10);
+			rootMatrix.emplace_back(roots);
+
+			numberOfRoots += roots.size();
+		}
+
+		double meanRoots = (double)numberOfRoots / iterations;
+		std::cout << "Average number of Roots in [-10, 10] = " << meanRoots << std::endl; // 3b)
+
+		std::vector<double> allRoots;
+		for (const std::vector<double>& rootVector : rootMatrix)
+			allRoots.insert(allRoots.end(), rootVector.begin(), rootVector.end()); // values for 3a)
+
+
+#ifdef NDEBUG
+		{
+		using namespace matplot;
+		figure();
+		hist(allRoots, 100);
+		xlim({ -10, 10 });
+		title("3a)");
+		show();
+		}
+#endif
+
 	}
 
-	roots = polyFindRoots(f, 10, -1, 1);
-	printVector(roots);
-	matplot::figure();
-	matplot::plot(x, y);
-	matplot::axis(matplot::equal);
-	matplot::grid(matplot::on);
-	matplot::show();
-	*/
-	
-
-	//printVector(y);
-
-	//printVector(results[0]);
-	//printVector(results[1]);
-	//printVector(results[2]);
-
-	//T_integrand(cosh, 2, 3);
-	//T_integrand(exp, abs(a), abs(3));
-	//T_integrand([] (double x) {return -cos(x); }, a, 3);
-
-
-	
 }
+
