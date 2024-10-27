@@ -24,7 +24,7 @@ After clicking the link you will arrive at a sourceforge page, which provides th
 the different gnuplot versions. You need to download the file gp5410-win64-mingw.exe as indicated in 
 the image.
 
-![sourceforgeDownload](https://github.com/user-attachments/assets/660612fe-6379-469d-b152-1a7d32c90b4d){width = "300px"}
+![sourceforgeDownload](https://github.com/user-attachments/assets/660612fe-6379-469d-b152-1a7d32c90b4d)
 
 The download will start shortly afterwards. After clicking on the executable you may get a windwos defender 
 warning as gnuplot is not a known trusted executable. It is however a well known and trusted program by 
