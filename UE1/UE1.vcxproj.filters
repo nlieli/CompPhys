@@ -21,9 +21,6 @@
     <ClCompile Include="SF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="plot.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="recursive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -33,9 +30,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VectorMath.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="plot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="recursive.h">

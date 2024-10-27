@@ -25,6 +25,20 @@
 #define TIMER
 #endif
 
+/* --- !IMPORTANT! ---
+To select the specific excercie you want to look at, you need to change the definition of the
+EXERCIC macro variable. You may change the number to one of the following:
+#define EXERCICE 0 --- corresponds to viewing all exercices
+#define EXERCICE 11 --- corresponds to viewing 1a)
+
+all possible values: 0 = all, 11 = 1a), 12 = 1b), 13 = 1c), 2 = 2a) and 2b), 3 = 3a) and 3b)
+When using Visual Studio, all section that are not selected appear as greyed out. If you define it
+as an invalid value, the preprocessor will remove all the code and none of the exercices will
+give any output.
+*/
+
+#define EXERCICE 3
+
 double SINGULARITY_ERROR_TERM = 1e-5; // smaller term worsens error for small N but can increase accuracy for large N
 namespace ct
 {
@@ -58,7 +72,7 @@ static double T1c_integrand(double(*potential)(double x), double a, double k, do
 	return 1 / std::sqrt(potential(k * a) - potential(k * x));
 }
 
-static double Vt(double x) { return (std::sinh(x)); }
+static double Vt(double x) { return (std::tanh(x)); }
 
 // ---------- general purpose functions ----------
 static double trapezoid(std::function<double(double)> integrand, int N, double a, double b)
@@ -124,6 +138,7 @@ static double legendreGauss(std::function<double(double)> integrand, int N, doub
 int main() 
 { 
 	// ---------- 1a) ----------
+#if EXERCICE == 11 || EXERCICE == 0
 	{ 
 		double a = 0; // lower bound for integration
 		double b = 1; // upper bound for integration 
@@ -164,10 +179,15 @@ int main()
 			auto lg = matplot::legend({ "Trapezoid", "Simpson", "Gaussian Quadrature" });
 			lg->font_name("Arial");
 			title("1a)");
+#if EXERCICE == 11
+			show();
+#endif
 		}
 #endif
 	}
+#endif
 	// ---------- 1b) ----------
+#if EXERCICE == 12 || EXERCICE == 0
 	{ 
 		std::vector<double> a = linspace(0, ct::PI, 100);
 		size_t length = a.size();
@@ -194,10 +214,15 @@ int main()
 			auto lg = matplot::legend({ "cosh(x)", "exp(|x|)", "-cos(x)" });
 			lg->font_name("Arial");
 			title("1b");
+#if EXERCICE == 12
+			show();
+#endif
 		}
 #endif	
 	}
+#endif
 	// ---------- 1c) ----------
+#if EXERCICE == 13 || EXERCICE == 0
 	{ 
 		double a = 1;
 		double kp;
@@ -215,8 +240,8 @@ int main()
 			TaR[i] = Ta[i] / Ta2[i];
 		}
 		
-		printVector(k);
-		printVector(Ta);
+		//printVector(k);
+		//printVector(Ta);
 
 #ifdef NDEBUG
 		{
@@ -230,10 +255,15 @@ int main()
 			figure();
 			plot(k, TaR);
 			title("1c) 2");
+#if EXERCICE == 13
+			show();
+#endif
 		}
 #endif
 	}
+#endif
 	// ---------- 2) ----------
+#if EXERCICE == 2 || EXERCICE == 0
 	{
 		const int iterations = 16;
 		const double trueValue = 0.009969265283747;
@@ -288,10 +318,15 @@ int main()
 			figure();
 			plot(newton, arrayShiftLeft(newton)); // needs to be made more pretty
 			title("2b)");
+#if EXERCICE == 2
+			show();
+#endif
 		}
 #endif
 	}
+#endif
 	// ---------- 3) ----------
+#if EXERCICE == 3 || EXERCICE == 0
 	{
 		const int iterations = 1000;
 		std::random_device rd;
@@ -331,8 +366,8 @@ int main()
 		show();
 		}
 #endif
-
 	}
+#endif
 
 }
 

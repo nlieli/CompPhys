@@ -142,12 +142,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="plot.cpp" />
     <ClCompile Include="recursive.cpp" />
     <ClCompile Include="SF.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="plot.h" />
     <ClInclude Include="recursive.h" />
     <ClInclude Include="SF.h" />
     <ClInclude Include="VectorMath.h" />
