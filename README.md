@@ -79,9 +79,9 @@ If other linker or even compiler errors occur, make sure that the libraries are 
 go to: Project > Properties then look for the Configuration drop down menu, and select "All configurations". Afterwards, check if 
 all of the following items are in the specified directories:
 
-C/C++ > General > Additional Include Directories : $(SolutionDir)\Dependencies\Matplot++\include | $(ProjectDir)\Header Files
-Linker > General > Additional Library Directories : $(SolutionDir)\Dependencies\Matplot++\lib\Matplot++ | $(SolutionDir)\Dependencies\Matplot++\lib
-Linker > General > Input > Additional Dependencies : matplot.lib | nodesoup.lib
+C/C++ > General > Additional Include Directories : `$(SolutionDir)\Dependencies\Matplot++\include` | `$(ProjectDir)\Header Files`
+Linker > General > Additional Library Directories : `$(SolutionDir)\Dependencies\Matplot++\lib\Matplot++` | `$(SolutionDir)\Dependencies\Matplot++\lib`
+Linker > General > Input > Additional Dependencies : `matplot.lib` | `nodesoup.lib`
 
     Error	LNK1104	cannot open file 'C:\CPProjects\CompPhys\x64\Release\UE1.exe'	UE1	C:\CPProjects\CompPhys\UE1\LINK	1		
 
