@@ -11,7 +11,6 @@
 
 // Graphing and plotting libraries
 #include "matplot/matplot.h"
-#include "plot.h"
 
 // various supporting functions
 #include "SF.h" 
