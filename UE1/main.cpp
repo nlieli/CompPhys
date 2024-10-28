@@ -51,7 +51,7 @@ static double V3(double x) { return -std::cos(x); }
 // ---------- 1c) specific functions ----------
 static double T1c_integrand(double(*potential)(double x), double a, double k, double x)
 {
-	return 1 / std::sqrt(potential(a) - potential(k * x));
+	return 1 / std::sqrt(potential(k * a) - potential(k * x));
 }
 
 static double Vt(double x) { return std::tanh(x); }
@@ -141,7 +141,7 @@ int main()
 		}
 
 		plotResults(results);
-		*/
+	*/	
 	}
 	// ---------- 1b) ----------
 	{ /*
@@ -166,13 +166,14 @@ int main()
 		matplot::plot(a, Ta3);
 		matplot::legend({ "cosh(x)", "exp(|x|)", "-cos(x)" });
 		matplot::show();
-		*/	
+	  */	
 	}
 	// ---------- 1c) ----------
-	{
+	{ 
+		/*
 		double a = 1;
 		double kp;
-		std::vector<double> k = linspace(-20, 0, 100);
+		std::vector<double> k = linspace(0, 20, 100);
 		size_t length = k.size();
 		std::vector<double> Ta(length);
 		std::vector<double> Ta2(length);
@@ -191,10 +192,11 @@ int main()
 		matplot::hold(matplot::on);
 		matplot::plot(k, Ta2);
 		matplot::show();
-	}
+	*/
+	} 
 
 
-	/*
+	
 	double mu = 3e-6;
 	std::vector<double> f = {-mu, 2 * mu, -mu, (3 - 2 * mu), (mu - 3), 1};
 	std::vector<double> x = matplot::linspace(-1, 2);
@@ -213,7 +215,7 @@ int main()
 	matplot::axis(matplot::equal);
 	matplot::grid(matplot::on);
 	matplot::show();
-	*/
+	
 	
 
 	//printVector(y);
