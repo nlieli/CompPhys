@@ -1,18 +1,19 @@
 #pragma once
 #include <vector>
 
+// N always refers to the degree of the legendre polynomial
 
 std::vector<double> legendreBracketing(int N, double a, double b);
 
 bool legendreBrackSearch(int N, double a, double b);
 
-std::vector<double> legendreFindRoots(int N, int RIT, double a, double b);
+std::vector<double> legendreFindRoots(int N, int iterations, double a, double b);
 
-double legendreNewtonRaphson(int N, int RIT, double x0);
+double legendreNewtonRaphson(int N, int iterations, double x0);
 
 std::vector<double> legendreWeights(std::vector<double> xi, int N);
 
-
+// --- templated functions
 
 template <typename T>
 T legendreEval(int N, T x)

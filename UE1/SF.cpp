@@ -2,6 +2,7 @@
 #include "VectorMath.h"
 #include <iostream>
 #include <cmath>
+#include <array>
 #include "SF.h"
 
 double dx = 1e-4;
@@ -85,11 +86,11 @@ std::vector<double> polyLegendreRec(int n) // recursive function
 	return Pnx;
 }
 
-double polyNewtonRaphson(std::vector<double>& function, int N, double x0) // N = number of iterations, x0 = first guess
+double polyNewtonRaphson(std::vector<double>& function, int iterations, double x0) // x0 = first guess
 {
-	for (int i = 0; i < N; ++i)
+	for (int i = 0; i < iterations; ++i)
 	{
-		if (x0 == 0)
+		if (polyEval(function, x0) == 0)
 			return x0;
 		x0 = x0 - (polyEval(function, x0) / polyEval(polyDiff(function), x0));
 	}
@@ -97,23 +98,54 @@ double polyNewtonRaphson(std::vector<double>& function, int N, double x0) // N =
 	return x0;
 }
 
+double polyBisection(std::vector<double>& function, int iterations, std::array<double, 2> interval)
+{
+	double a = interval[0];
+	double b = interval[1];
+	double c = (b + a) / 2;
+	//while (polyEval(function, c) != 0)
+	for (int i = 0; i < iterations; ++i)
+	{
+		if (polyEval(function, c) == 0)
+			return c;
+		else if (polyBrackSearch(function, a, c))
+			b = c;
+		else
+			a = c;
+		c = (b + a) / 2;
+	}
+
+	return c;
+}
+
 std::vector<double> polyBracketing(std::vector<double>& function, double a, double b) 
 {
 	std::vector<double> guess;
-	double i = a;
 	for (double j = a; j < b; j += dx)
 	{
-		if (polyBrackSearch(function, i, j))
-		{
-			guess.push_back(i + dx / 2);
-		}
-		i = j;
+		if (polyBrackSearch(function, j, j + dx))
+			guess.push_back(j + dx / 2);
 	}
 
 	return guess;
 }
 
-bool polyBrackSearch(std::vector<double>& function, double a, double b)
+std::vector<std::array<double, 2>> polyBracketingInterval(std::vector<double>& function, double a, double b)
+{
+	std::vector<std::array<double, 2>> interval;
+	double i = a;
+	for (double j = a; j < b; j += dx)
+	{
+		if (polyBrackSearch(function, i, j))
+			interval.push_back({ i, i + dx });
+
+		i = j;
+	}
+
+	return interval;
+}
+
+bool polyBrackSearch(const std::vector<double>& function, double a, double b)
 {
 	double y1 = polyEval(function, a);
 	double y2 = polyEval(function, b);
@@ -124,14 +156,14 @@ bool polyBrackSearch(std::vector<double>& function, double a, double b)
 	return false;
 }
 
-std::vector<double> polyFindRoots(std::vector<double>& function, int N, double a, double b)
+std::vector<double> polyFindRoots(std::vector<double>& function, int iterations, double a, double b)
 {
 	std::vector<double> guess = polyBracketing(function, a, b);
 	size_t numberOfRoots = guess.size();
 	std::vector<double> result(numberOfRoots);
 
 	for (size_t i = 0; i < numberOfRoots; ++i)
-		result[i] = polyNewtonRaphson(function, 10, guess[i]);
+		result[i] = polyNewtonRaphson(function, iterations, guess[i]);
 
 	return result;
 }

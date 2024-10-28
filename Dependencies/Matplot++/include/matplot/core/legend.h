@@ -136,7 +136,7 @@ namespace matplot {
         vertical_alignment vertical_location_{vertical_alignment::top};
 
         // Font
-        std::string font_name_{"Helvetica"};
+        std::string font_name_{"Arial"};
         float font_size_{11};
         std::string font_angle_{"normal"};
         std::string font_weight_{"bold"};
