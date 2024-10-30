@@ -104,5 +104,5 @@ only the part for exercice 1a) is run and the rest corresponds to 1b), 1c), 2a) 
 
 If you cannot get the gnuplot installation to work as intended, you may also run the program in Debug mode. This way, all
 parts of the program related to plotting, are automatically excluded via preprocessor statements. You can then just
-view the results as a console ouput. 
+view the results as a console ouput. You may also check out the Graphs folder to find images of the graphs.
 
