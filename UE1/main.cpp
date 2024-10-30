@@ -71,10 +71,10 @@ static double T1c_integrand(double(*potential)(double x), double a, double k, do
 	return 1 / std::sqrt(potential(k * a) - potential(k * x));
 }
 
-static double Vt(double x) { return (std::tanh(x)); }
+static double Vt(double x) { return (std::tanh(x)); } // chosen potential
 
 // ---------- general purpose functions ----------
-static double trapezoid(std::function<double(double)> integrand, int N, double a, double b)
+static double trapezoid(std::function<double(double)> integrand, int N, double a, double b) // a, b are lower and upper bounds respectively, N = number of iterations
 {
 	if (isinf(integrand(a))) a += SINGULARITY_ERROR_TERM; 
 	if (isinf(integrand(b))) b -= SINGULARITY_ERROR_TERM;
@@ -113,7 +113,7 @@ static double simpson(std::function<double(double)> integrand, int N, double a, 
 	return f;
 }
 
-static double legendreGauss(std::function<double(double)> integrand, int N, double a, double b)
+static double legendreGauss(std::function<double(double)> integrand, int N, double a, double b) // N = nth degree polynomial used (iterations)
 {
 	double F = 0;
 	double chi;

@@ -38,7 +38,6 @@ std::array<T, size> abs(std::array<T, size> array)
 	return array;
 }
 
-
 template <typename T, typename B>
 std::vector<T> vectorScalarAdd(std::vector<T> vector, B scalar)
 {
