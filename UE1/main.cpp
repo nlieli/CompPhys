@@ -1,4 +1,4 @@
-// general purpose
+﻿// general purpose
 #include <iostream>
 #include <iomanip> // std::setprecision 
 #include <direct.h>
@@ -36,7 +36,7 @@ as an invalid value, the preprocessor will remove all the code and none of the e
 give any output.
 */
 
-#define EXERCICE 3
+#define EXERCICE 0
 
 double SINGULARITY_ERROR_TERM = 1e-5; // smaller term worsens error for small N but can increase accuracy for large N
 namespace ct
@@ -168,6 +168,14 @@ int main()
 		std::vector<double> GTiterations = linspace(0, results[0].size(), 0); // 0 means step width of int 1
 		std::vector<double> simpIterations = linspace(0, results[1].size(), 0); // simpson is different lenght because only even Ns allowed
 
+		std::cout << " ---------- 1a) Results -----------" << std::endl;
+		std::cout << "\nTrapezoid Rule Error over N: " << std::endl;
+		print(results[0]);
+		std::cout << "\nSimpson Rule Error over N: " << std::endl;
+		print(results[1]);
+		std::cout << "\nGaussian Quadrature Error over N: " << std::endl;
+		print(results[2]);
+
 #ifdef NDEBUG
 		{
 			using namespace matplot;
@@ -178,6 +186,8 @@ int main()
 			auto lg = matplot::legend({ "Trapezoid", "Simpson", "Gaussian Quadrature" });
 			lg->font_name("Arial");
 			title("1a)");
+			xlabel("N");
+			ylabel("Error / log(|x_t - x|)");
 #if EXERCICE == 11
 			show();
 #endif
@@ -202,6 +212,14 @@ int main()
 			Ta3[i] = legendreGauss([ap](double x) {return T1b_integrand(V3, ap, x); }, 10, 0, ap);
 		}
 
+		std::cout << " ---------- 1b) Results -----------" << std::endl;
+		std::cout << "\nPeriod over a for potential V(x) = cosh(x): " << std::endl;
+		print(Ta1);
+		std::cout << "\nPeriod over a for potential V(x) = exp(|x|): " << std::endl;
+		print(Ta2);
+		std::cout << "\nPeriod over a for potential V(x) = -cos(x): " << std::endl;
+		print(Ta3);
+
 #ifdef NDEBUG
 		{
 			using namespace matplot;
@@ -212,7 +230,11 @@ int main()
 			plot(a, Ta3);
 			auto lg = matplot::legend({ "cosh(x)", "exp(|x|)", "-cos(x)" });
 			lg->font_name("Arial");
+			auto pos = matplot::legend::general_alignment::left;
+			lg->location(pos);
 			title("1b");
+			xlabel("a");
+			ylabel("T(a)");
 #if EXERCICE == 12
 			show();
 #endif
@@ -225,7 +247,7 @@ int main()
 	{ 
 		double a = 1;
 		double kp;
-		std::vector<double> k = linspace(0, 10, 100);
+		std::vector<double> k = linspace(0, 5, 100);
 		size_t length = k.size();
 		std::vector<double> Ta(length);
 		std::vector<double> Ta2(length);
@@ -238,22 +260,53 @@ int main()
 			Ta2[i] = legendreGauss([a, kp](double x) {return T1c_integrand(Vt, a / 2, kp, x); }, 10, 0, a / 2);
 			TaR[i] = Ta[i] / Ta2[i];
 		}
-		
-		//printVector(k);
-		//printVector(Ta);
 
+		std::vector<double> at = linspace(0, 1, 100);
+		std::vector<double> T3(at.size());
+		double ap;
+		double scalar = 5;
+		double power = 3;
+
+		for (int i = 0; i < at.size(); ++i)
+		{
+			ap = at[i];
+			T3[i] = legendreGauss([ap, scalar, power](double x) {return T1b_integrand(Vt, scalar*std::pow(ap, power), scalar*std::pow(x, power)); }, 10, 0, ap);
+		}
+
+		std::cout << " ---------- 1c) Results -----------" << std::endl;
+		std::cout << "\nPeriod T(a) over a for potential V(x) = tanh(5x^3): " << std::endl;
+		print(T3);
+		std::cout << "\nPeriod T(a) over k for potential V(x) = tanh(kx): " << std::endl;
+		print(Ta);
+		std::cout << "\nPeriod T(a/2) over k for potential V(x) = tanh(kx): " << std::endl;
+		print(Ta2);
+		std::cout << "\nPeriod ratio T(a) / T(a/2) over k for potential V(x) = tanh(kx): " << std::endl;
+		print(TaR);
+
+		
 #ifdef NDEBUG
 		{
 			using namespace matplot;
 			figure();
+			plot(at, T3);
+			title("1c) tanh(5x^3)");
+			xlabel("a");
+			ylabel("T(a)");
+
+			figure();
 			plot(k, Ta);
 			hold(matplot::on);
 			plot(k, Ta2);
-			title("1c) 1");
+			title("1c)");
+			legend({ "T(a)", "T(a / 2)" });
+			xlabel("k");
+			ylabel("T(1, k), T(0.5, k)");
 
 			figure();
 			plot(k, TaR);
-			title("1c) 2");
+			title("1c)");
+			xlabel("k");
+			ylabel("T(1) / T(0.5)");
 #if EXERCICE == 13
 			show();
 #endif
@@ -288,13 +341,15 @@ int main()
 			newtonResult[i] = newtonRoots; // for each root, all approximations are stored in an array
 			bisectionResult[i] = bisectionRoot;
 		}
+
+		std::cout << " ---------- 1c) Results -----------\n" << std::endl;
 		double lagrangePoint = newtonResult[0][iterations - 1] * ct::DISTANCE_EARTH_SUN_METERS;
-		std::cout << "Lagrange Point is at: " <<  lagrangePoint << " m from earth" << std::endl;
+		std::cout << "Lagrange Point is at: " <<  lagrangePoint << " m from earth\n" << std::endl;
 		
 		std::cout << "Newton Root Convergence: " << std::endl;
 		print(newtonResult[0] - trueValue);
 
-		std::cout << "Bisection Root Convergence: " << std::endl;
+		std::cout << "\nBisection Root Convergence: " << std::endl;
 		print(bisectionResult[0] - trueValue);
 
 #ifdef NDEBUG
@@ -315,8 +370,10 @@ int main()
 			title("2a)");
 
 			figure();
-			plot(newton, arrayShiftLeft(newton)); // needs to be made more pretty
-			title("2b)");
+			plot(arrayErase(newton, newton.size() - 1), arrayErase(arrayShiftLeft(newton), newton.size() - 1)); // needs to be made more pretty
+			title("2b) e_{n+1} = te_n^2 ");
+			xlabel("e_n / log10");
+			ylabel("e_{n+1} / log10");
 #if EXERCICE == 2
 			show();
 #endif
@@ -347,6 +404,8 @@ int main()
 			numberOfRoots += roots.size();
 		}
 
+		std::cout << " ---------- 1c) Results -----------\n" << std::endl;
+
 		double meanRoots = (double)numberOfRoots / iterations;
 		std::cout << "Average number of Roots in [-10, 10] = " << meanRoots << std::endl; // 3b)
 
@@ -354,14 +413,19 @@ int main()
 		for (const std::vector<double>& rootVector : rootMatrix)
 			allRoots.insert(allRoots.end(), rootVector.begin(), rootVector.end()); // values for 3a)
 
+		std::cout << "\nAll roots found over " << iterations << " iterations:" << std::endl;
+		print(allRoots);
 
 #ifdef NDEBUG
 		{
 		using namespace matplot;
+		int numberOfBins = 100;
 		figure();
-		hist(allRoots, 100);
+		hist(allRoots, numberOfBins);
 		xlim({ -10, 10 });
 		title("3a)");
+		xlabel("x");
+		ylabel("Number of Roots");
 		show();
 		}
 #endif
