@@ -38,7 +38,6 @@ std::array<T, size> abs(std::array<T, size> array)
 	return array;
 }
 
-
 template <typename T, typename B>
 std::vector<T> vectorScalarAdd(std::vector<T> vector, B scalar)
 {
@@ -276,4 +275,24 @@ template <typename T>
 std::vector<T> operator<<(std::vector<T> vector, int)
 {
 	return vectorShiftLeft(vector);
+}
+
+template <typename T, int size>
+std::array<T, size - 1> arrayErase(const std::array<T, size>& array, int index)
+{
+	if (index < 0 || index >= size)
+	{
+		throw std::out_of_range("Out of range!");
+	}
+
+	std::array<T, size - 1> smallerArray;
+	for (int i = 0, j = 0; i < size; ++i)
+	{
+		if (i != index)
+		{
+			smallerArray[j++] = array[i];
+		}
+	}
+
+	return smallerArray;
 }

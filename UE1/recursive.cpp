@@ -11,7 +11,7 @@ std::vector<double> legendreBracketing(int N, double a, double b)
 	double i = a;
 	for (double j = a; j < b; j += dx1)
 	{
-		if (legendreBrackSearch(N, i, j))
+		if (legendreBrackSearch(N, i, j)) // checks for sign change
 		{
 			guess.push_back(i + dx1 / 2);
 		}
@@ -20,7 +20,6 @@ std::vector<double> legendreBracketing(int N, double a, double b)
 	
 	return guess;
 }
-
 
 bool legendreBrackSearch(int N, double a, double b)
 {
@@ -50,8 +49,8 @@ std::vector<double> legendreFindRoots(int N, int iterations, double a, double b)
 
 	for (size_t i = 0; i < numberOfRoots - 1; ++i)
 	{
-		proximityCheck = result[i] - result[i + 1];
-		if (std::abs(proximityCheck) < epsilon)
+		proximityCheck = result[i] - result[i + 1]; // some roots might be recorded twice, erase those
+		if (std::abs(proximityCheck) < epsilon) 
 		{
 			result.erase(result.begin() + i);
 			numberOfRoots -= 1;
@@ -62,7 +61,7 @@ std::vector<double> legendreFindRoots(int N, int iterations, double a, double b)
 	return result;
 }
 
-double legendreNewtonRaphson(int N, int iterations, double x0)
+double legendreNewtonRaphson(int N, int iterations, double x0) // x0 = initial guess, N = nth degree legendre polynomial
 {
 	for (int i = 0; i < iterations; ++i)
 	{
