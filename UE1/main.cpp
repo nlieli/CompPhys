@@ -36,7 +36,7 @@ as an invalid value, the preprocessor will remove all the code and none of the e
 give any output.
 */
 
-#define EXERCICE 3
+#define EXERCICE 13
 
 double SINGULARITY_ERROR_TERM = 1e-5; // smaller term worsens error for small N but can increase accuracy for large N
 namespace ct
@@ -225,7 +225,7 @@ int main()
 	{ 
 		double a = 1;
 		double kp;
-		std::vector<double> k = linspace(0, 10, 100);
+		std::vector<double> k = linspace(0, 5, 100);
 		size_t length = k.size();
 		std::vector<double> Ta(length);
 		std::vector<double> Ta2(length);
@@ -242,18 +242,39 @@ int main()
 		//printVector(k);
 		//printVector(Ta);
 
+		std::vector<double> a2 = linspace(-ct::PI, ct::PI, 100);
+		size_t length2 = a2.size();
+		std::vector<double> Ta1(length2);
+		//std::vector<double> Ta2(length2);
+		//std::vector<double> Ta3(length2);
+	
+		for (int i = 0; i < length2; ++i)
+		{
+			double ap = a2[i];
+			Ta1[i] = legendreGauss([ap](double x) {return T1b_integrand(Vt, ap, x); }, 10, 0, ap);
+		}	
+
+		print(Ta1);
+
 #ifdef NDEBUG
 		{
 			using namespace matplot;
 			figure();
+			plot(a2, Ta1);
+
+			/*
+			figure();
 			plot(k, Ta);
 			hold(matplot::on);
 			plot(k, Ta2);
-			title("1c) 1");
+			auto lg = legend({ "T(a)" , "T(a/2)" });
+			lg->location(legend::general_alignment::left);
 
 			figure();
 			plot(k, TaR);
+			ylabel("T(a) / T(a/2)");
 			title("1c) 2");
+			*/
 #if EXERCICE == 13
 			show();
 #endif
@@ -292,10 +313,10 @@ int main()
 		std::cout << "Lagrange Point is at: " <<  lagrangePoint << " m from earth" << std::endl;
 		
 		std::cout << "Newton Root Convergence: " << std::endl;
-		print(newtonResult[0] - trueValue);
+		print(abs(newtonResult[0] - trueValue));
 
 		std::cout << "Bisection Root Convergence: " << std::endl;
-		print(bisectionResult[0] - trueValue);
+		print(abs(bisectionResult[0] - trueValue));
 
 #ifdef NDEBUG
 		{
