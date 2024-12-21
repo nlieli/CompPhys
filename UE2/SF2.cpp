@@ -2,57 +2,42 @@
 #include <fstream> // creates input file stream
 #include <sstream>
 #include <string>
+#include <regex>
 #include <vector>
 #include "SF2.h"
 
-void readMatrix(const std::string& fileName, const delimiter& delim)
+void readMatrix(const std::string& fileName, const decimalStyle& style)
 {
 	std::ifstream fs;
 	std::stringstream ss;
 	std::string row;
-	std::string value;
-	int columns = 0;
-	bool repeatedSpaces = false;
+	std::vector<std::vector<double>> Matrix;
+	std::regex reg;
+	size_t columns = 0;
+
+	if (style == dot)
+		reg = "(-?\\d*\\.?\\d+e?[-+]\\d*)"; // decimal point system, captures all numbers using this style 
+	else
+		reg = "(-?\\d*,?\\d+e?[-+]\\d*)"; // decimal comma system, captures all numbers using this style
 
 	fs.open(fileName, std::ios::in);
 	if (!fs.is_open()) { std::cerr << "[ERROR] File stream did not open successfully!" << std::endl;  return; }
 
 	ss << fs.rdbuf();
 	std::getline(ss, row);
+	std::smatch matches;
+	std::regex_search(row, matches, reg);
+	columns = matches.size();
+	Matrix.reserve(columns);
 
-	if (delim == space)
+	for (int i = 0; std::getline(ss, row); ++i)
 	{
-		for (size_t i = 0; i < row.size(); ++i)
+		for (int j = 0; std::regex_search(row, matches, reg); ++j)
 		{
-			if (row[i] == delim && !repeatedSpaces)
-			{
-				columns += 1;
-				repeatedSpaces = true;
-			}
-			else
-			{
-				repeatedSpaces = false;
-			}
-		}
-	} 
-	else
-	{
-		for (size_t i = 0; i < row.size(); ++i)
-		{
-			if (row[i] == delim)
-				columns += 1;
+			Matrix[i].push_back(stod(matches.str())); // out of bounds error somewhere here
+			row = matches.suffix().str();
 		}
 	}
+	
 
-	std::vector<std::vector<double>> Matrix(columns); // use columns as rows because iterating over columns is faster and they typically contain more entries
-	
-	while (std::getline(ss, value, static_cast<char>(delim)))
-	{
-		size_t i = 0;
-		
-		Matrix[i % columns].push_back(2);
-		i += 1;
-	}
-	
-	
 }

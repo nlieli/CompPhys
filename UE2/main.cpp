@@ -5,5 +5,5 @@
 int main()
 {
 	readMatrix("txt sound file.txt");
-	
+
 }

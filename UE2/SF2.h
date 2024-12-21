@@ -1,16 +1,13 @@
 #pragma once
 #include <fstream>
 
-enum delimiter
+enum decimalStyle
 {
-	tab = '\t',
-	space = ' ',
 	comma = ',',
-	semicolon = ';',
-	colon = ':'
+	dot = '.'
 };
 
-void readMatrix(const std::string& fileName, const delimiter& delim = space);
+void readMatrix(const std::string& fileName, const decimalStyle& style = dot);
 
 template <typename T> 
 void printVector(std::vector<T>& vector)
