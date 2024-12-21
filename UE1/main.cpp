@@ -347,7 +347,7 @@ int main()
 		std::cout << "Lagrange Point is at: " <<  lagrangePoint << " m from earth\n" << std::endl;
 		
 		std::cout << "Newton Root Convergence: " << std::endl;
-		print(newtonResult[0] - trueValue);
+		print(abs(newtonResult[0] - trueValue));
 
 		std::cout << "\nBisection Root Convergence: " << std::endl;
 		print(bisectionResult[0] - trueValue);
