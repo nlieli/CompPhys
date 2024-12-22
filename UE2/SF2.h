@@ -7,9 +7,26 @@ enum decimalStyle
 	dot = '.'
 };
 
+struct Timer
+{
+	// properties
+	std::chrono::time_point<std::chrono::steady_clock> global_start, global_end;
+	std::chrono::duration<float> global_duration;
+
+	std::chrono::time_point<std::chrono::steady_clock> local_start, local_end;
+	std::chrono::duration<float> local_duration;
+	std::vector<float> laps;
+
+	// methods
+	void start();
+	void end();
+	Timer();
+	~Timer();
+};
+
 namespace fftw3
 {
-	std::vector<std::complex<double>> fft(std::vector<double> values);
+	std::vector<std::complex<double>> fft(std::vector<double> values, Timer* timer = nullptr);
 }
 std::vector<std::vector<double>> readMatrix(const std::string& fileName, const decimalStyle& style = dot);
 
@@ -22,27 +39,4 @@ void printVector(std::vector<T>& vector)
 	std::cout << ']' << std::endl;
 }
 
-struct Timer
-{
-	std::chrono::time_point<std::chrono::steady_clock> start, end;
-	std::chrono::duration<float> duration;
-
-	Timer();
-
-	~Timer();
-};
-
-template <typename T, typename B, typename C>
-std::vector<double> linspace(T a, B b, C n = 0) // a = lower bound, b = higher bound, n = number of values
-{
-	if (n == 0) n = b - a;
-
-	double increment = (double)(b - a) / n;
-	std::vector<double> vector(n);
-
-	for (int i = 0; i < n; ++i)
-		vector[i] = a + i * increment;
-
-	return vector;
-}
 

@@ -11,18 +11,35 @@
 
 Timer::Timer()
 {
-	start = std::chrono::high_resolution_clock::now();
-	duration = std::chrono::duration<float> (0.0f);
-	end = start;
+	global_start = std::chrono::high_resolution_clock::now();
+	global_duration = std::chrono::duration<float> (0.0f);
+	global_end = global_start;
+
+	local_start = std::chrono::high_resolution_clock::now();
+	local_end = local_start;
+	local_duration = global_duration;
 }
 
 Timer::~Timer()
 {
-	end = std::chrono::high_resolution_clock::now();
-	duration = end - start;
+	global_end = std::chrono::high_resolution_clock::now();
+	global_duration = global_end - global_start;
 
-	float ms = duration.count() * 1000.0f;
-	std::cout << "Timer took " << ms << "ms " << std::endl;
+	float ms = global_duration.count() * 1000.0f;
+	std::cout << "Total program timer took " << ms << "ms " << std::endl;
+}
+
+void Timer::start()
+{
+	local_start = std::chrono::high_resolution_clock::now();
+}
+
+void Timer::end()
+{
+	local_end = std::chrono::high_resolution_clock::now();
+	local_duration = local_end - local_start;
+	float ms = local_duration.count() * 1000.0f;
+	laps.push_back(ms);
 }
 
 std::vector<std::vector<double>> readMatrix(const std::string& fileName, const decimalStyle& style)
@@ -59,8 +76,11 @@ std::vector<std::vector<double>> readMatrix(const std::string& fileName, const d
 	return Matrix;
 }
 
-std::vector<std::complex<double>> fftw3::fft(std::vector<double> values)
+std::vector<std::complex<double>> fftw3::fft(std::vector<double> values, Timer* timer)
 {
+	if (!nullptr)
+		timer->start();
+
 	int N = (int)values.size();
 	std::vector<std::complex<double>> results(N);
 	fftw_complex* in = fftw_alloc_complex(N);
@@ -73,6 +93,7 @@ std::vector<std::complex<double>> fftw3::fft(std::vector<double> values)
 	}
 
 	fftw_plan plan = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+	fftw_execute(plan);
 
 	for (int i = 0; i < N; ++i)
 		results[i] = std::complex<double>(out[i][0], out[i][1]);
@@ -81,6 +102,9 @@ std::vector<std::complex<double>> fftw3::fft(std::vector<double> values)
 	fftw_free(in);
 	fftw_free(out);
 	fftw_cleanup();
+
+	if (!nullptr)
+		timer->end();
 
 	return results;
 }

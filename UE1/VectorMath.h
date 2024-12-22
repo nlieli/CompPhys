@@ -20,6 +20,31 @@ std::vector<double> linspace(T a, B b, C n = 0) // a = lower bound, b = higher b
 }
 
 template <typename T>
+T cumsum(std::vector<T> vector)
+{
+	size_t n = vector.size();
+	T sum = 0;
+	for (size_t i = 0; i < n; ++i)
+		sum += vector[i];
+
+	return sum;
+}
+
+template <typename T>
+std::vector<T> cumsumVector(std::vector<T> vector)
+{
+	size_t n = vector.size();
+	T sum = 0;
+	for (size_t i = 0; i < n; ++i)
+	{
+		sum += vector[i];
+		vector[i] = sum;
+	}
+
+	return vector;
+}
+
+template <typename T>
 std::vector<T> abs(std::vector<T> vector)
 {
 	size_t length = vector.size();
