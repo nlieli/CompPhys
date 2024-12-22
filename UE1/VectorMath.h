@@ -221,6 +221,24 @@ std::vector<T> operator*(B scalar, std::vector<T> vector)
 	return vectorMultiply(scalar, vector);
 }
 
+template <typename T>
+T scalarProduct(std::vector<T> v1, std::vector<T> v2)
+{
+	if (v1.size() != v2.size()) { return -1; }
+	size_t n = v1.size();
+	T sum = 0;
+	for (size_t i = 0; i < n; ++i)
+		sum += v1[i] * v2[i];
+
+	return sum;
+}
+
+template <typename T>
+T operator*(std::vector<T> v1, std::vector<T> v2)
+{
+	return scalarProduct(v1, v2);
+}
+
 template <typename T, typename B>
 std::vector<T> vectorDiv(std::vector<T> vector, B scalar)
 {

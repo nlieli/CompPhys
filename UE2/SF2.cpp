@@ -78,7 +78,7 @@ std::vector<std::vector<double>> readMatrix(const std::string& fileName, const d
 
 std::vector<std::complex<double>> fftw3::fft(std::vector<double> values, Timer* timer)
 {
-	if (!nullptr)
+	if (timer)
 		timer->start();
 
 	int N = (int)values.size();
@@ -103,7 +103,7 @@ std::vector<std::complex<double>> fftw3::fft(std::vector<double> values, Timer* 
 	fftw_free(out);
 	fftw_cleanup();
 
-	if (!nullptr)
+	if (timer)
 		timer->end();
 
 	return results;

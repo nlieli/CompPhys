@@ -5,7 +5,7 @@
 #include "SF2.h"
 #include "VectorMath.h"
 
-#define EXERCISE 12
+#define EXERCISE 13
 
 namespace ct
 {
@@ -18,9 +18,9 @@ static std::vector<std::complex<double>> discreteFourierTransform(std::vector<do
 	if (timer)
 		timer->start();
 
-	std::vector<std::complex<double>> result(function.size());
-	std::complex<double> i(0.0, 1.0);
 	int N = (int)function.size();
+	std::vector<std::complex<double>> result(N);
+	std::complex<double> i(0.0, 1.0);
 
 	for (size_t k = 0; k < N; ++k)
 	{
@@ -34,6 +34,15 @@ static std::vector<std::complex<double>> discreteFourierTransform(std::vector<do
 	return result;
 }
 
+static std::vector<double> powerSpectrum(std::vector<std::complex<double>> function)
+{
+	size_t N = function.size();
+	std::vector<double> result(N);
+	for (size_t i = 0; i < N; ++i)
+		result[i] = std::abs(function[i]) * std::abs(function[i]) * (double)1 / (N * N);
+
+	return result;
+}
 
 int main()
 {
@@ -96,7 +105,6 @@ int main()
 		matrix data = readMatrix(ct::fileName);
 		std::vector<std::complex<double>> dft;
 		std::vector<std::complex<double>> fft;
-		std::vector<double> dataVec = data[0];
 		for (int i = m; i > 0; --i)
 		{
 			data[0].resize(i);
@@ -104,7 +112,6 @@ int main()
 			dft = discreteFourierTransform(data[0], &timerDFT);
 			fft = fftw3::fft(data[0], &timerFFT);
 		}
-
 
 		std::vector<float> dftTimer = timerDFT.laps;
 		std::vector<float> fftTimer = timerFFT.laps;
@@ -123,6 +130,7 @@ int main()
 			plot(fftTimeSum);
 			xlabel("m");
 			ylabel("ms");
+			grid(on);
 			show();
 		}
 #endif
@@ -132,8 +140,20 @@ int main()
 // ------ 1c) ------
 #if EXERCISE == 13
 	{
+		using matrix = std::vector<std::vector<double>>;
+		matrix data = readMatrix(ct::fileName);
+
+		std::vector<std::complex<double>> fft = fftw3::fft(data[0]);
+		std::vector<double> PS = powerSpectrum(fft);
+
 
 #ifdef NDEBUG
+		{
+			using namespace matplot;
+			figure();
+			plot(PS);
+			show();
+		}
 
 #endif
 
