@@ -104,15 +104,18 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\Matplot++\include;$(ProjectDir)\Header Files;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\fftw\include;$(SolutionDir)\Dependencies\Matplot++\include;$(ProjectDir)\Header Files;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\Matplot++\lib\Matplot++;$(SolutionDir)\Dependencies\Matplot++\lib;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>matplot.lib;nodesoup.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\fftw\lib;$(SolutionDir)\Dependencies\Matplot++\lib\Matplot++;$(SolutionDir)\Dependencies\Matplot++\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>matplot.lib;nodesoup.lib;libfftw3-3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /d /y "$(SolutionDir)\Dependencies\fftw\bin\*.*" "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -142,7 +145,7 @@
     <ClInclude Include="SF2.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="txt sound file.txt" />
+    <Text Include="txt_sound_file.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

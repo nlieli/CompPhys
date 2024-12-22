@@ -28,7 +28,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="txt sound file.txt">
+    <Text Include="txt_sound_file.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
