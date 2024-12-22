@@ -89,7 +89,8 @@ int main()
 // ------ 1b) ------
 #if EXERCISE == 12
 	{
-		Timer timer;
+		Timer timerDFT;
+		Timer timerFFT;
 		using matrix = std::vector<std::vector<double>>;
 		int m = 5e2;
 		matrix data = readMatrix(ct::fileName);
@@ -100,22 +101,15 @@ int main()
 		{
 			data[0].resize(i);
 			dft.resize(i);
-			dft = discreteFourierTransform(data[0], &timer);
+			dft = discreteFourierTransform(data[0], &timerDFT);
+			fft = fftw3::fft(data[0], &timerFFT);
 		}
 
-		std::vector<float> dftTimer = timer.laps;
+
+		std::vector<float> dftTimer = timerDFT.laps;
+		std::vector<float> fftTimer = timerFFT.laps;
 		std::reverse(dftTimer.begin(), dftTimer.end());
-
-		for (int i = m; i > 0; --i)
-		{
-			dataVec.resize(i);
-			fft.resize(i);
-			fft = fftw3::fft(dataVec, &timer);
-		}
-
-		std::vector<float> fftTimer = timer.laps;
 		std::reverse(fftTimer.begin(), fftTimer.end());
-		fftTimer.resize(m);
 
 		std::vector<float> dftTimeSum = cumsumVector(dftTimer);
 		std::vector<float> fftTimeSum = cumsumVector(fftTimer);
