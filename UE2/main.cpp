@@ -5,7 +5,7 @@
 #include "SF2.h"
 #include "VectorMath.h"
 
-#define EXERCISE 13
+#define EXERCISE 14
 
 namespace ct
 {
@@ -177,4 +177,72 @@ int main()
 	}
 #endif
 
+// ------ 1e) ------
+#if EXERCISE == 14
+	{
+		std::cout << "\033[1;35m---------- Exercise 1e) ----------\033[0m" << std::endl;
+		std::cout << "The Fourier representation of a perfect tone would be a Dirac delta function delta(x - f_k) with f_k the fundamental frequency of the tone.";
+
+		using matrix = std::vector<std::vector<double>>;
+		constexpr size_t numberOfPeaks = 5;
+		matrix data = readMatrix(ct::fileName);
+		std::vector<std::complex<double>> approximatedFFT(data[0].size(), 0); // creates a vector with length data[0].size() filled with all zeros
+
+		std::vector<std::complex<double>> fft = fftw3::fft(data[0]);
+		std::vector<double> PSe = powerSpectrum(fft);
+		PSe.resize(PSe.size() / 2); // removes values above Nyquist Frequency containing no additional information
+
+		// find the 5 tallest peaks and copies the info to the approximation (contains phase information as well)
+		int approximatePeakWidth = 30; // catches all data points belonging to one peak
+		for (size_t i = 0; i < numberOfPeaks; ++i)
+		{
+			std::vector<double>::iterator max = std::max_element(PSe.begin(), PSe.end());
+			int index = std::distance(PSe.begin(), max);
+			approximatedFFT[index] = fft[index];
+			std::fill(PSe.begin() + index - approximatePeakWidth, PSe.begin() + index + approximatePeakWidth, 0); // removes largest peak from data set so second largest can be found
+		}
+
+		std::vector<double> approxmiatedSoundWave = fftw3::ifft(approximatedFFT);
+			
+		/* use matlab script to actually play the sound audio
+		- i cant be bother to install another library and figure
+		out how it works just for that
+	
+		the following Matlab code will give you a correct output
+		
+		data = readmatrix("approximatedFFT.txt")
+		Fs = 44100;
+		sound(data, Fs);
+		
+		just copy and paste, then you will hear that the tone is a 
+		perfect D3.
+
+		alternatively, look at the wave form of the file in the 
+		graph.
+		*/
+
+		
+		// writes output file with sound wave values
+		std::ofstream fs;
+		std::string fileName = "approximatedFFT.txt";
+		fs.open(fileName);
+
+		for (size_t i = 0; i < approxmiatedSoundWave.size(); ++i)
+			fs << approxmiatedSoundWave[i] << "\n";
+
+		fs << std::endl;
+		fs.close();
+
+#ifdef NDEBUG
+		{
+			using namespace matplot;
+			figure();
+			plot(approxmiatedSoundWave);
+			show();
+		}
+
+#endif
+
+	}
+#endif
 }

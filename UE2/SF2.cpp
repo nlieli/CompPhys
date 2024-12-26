@@ -72,7 +72,8 @@ std::vector<std::vector<double>> readMatrix(const std::string& fileName, const d
 
 	for (int i = 0; ss >> value; ++i)
 		Matrix[i % columns].push_back(value);
-
+	
+	fs.close();
 	return Matrix;
 }
 
@@ -110,4 +111,30 @@ std::vector<std::complex<double>> fftw3::fft(std::vector<double> values, Timer* 
 }
 
 
+std::vector<double> fftw3::ifft(std::vector<std::complex<double>> values)
+{
+	int N = (int)values.size();
+	std::vector<double> results(N);
+	fftw_complex* in = fftw_alloc_complex(N);
+	fftw_complex* out = fftw_alloc_complex(N);
+
+	for (int i = 0; i < N; ++i)
+	{
+		in[i][0] = values[i].real();
+		in[i][1] = values[i].imag();;
+	}
+
+	fftw_plan plan = fftw_plan_dft_1d(N, in, out, FFTW_BACKWARD,  FFTW_ESTIMATE);
+	fftw_execute(plan);
+
+	for (int i = 0; i < N; ++i)
+		results[i] = out[i][0] / N;
+
+	fftw_destroy_plan(plan);
+	fftw_free(in);
+	fftw_free(out);
+	fftw_cleanup();
+
+	return results;
+}
 

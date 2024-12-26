@@ -7,6 +7,12 @@ enum decimalStyle
 	dot = '.'
 };
 
+enum fftDirection
+{
+	forward = FFTW_FORWARD,
+	backward = FFTW_BACKWARD
+};
+
 struct Timer
 {
 	// properties
@@ -27,7 +33,9 @@ struct Timer
 namespace fftw3
 {
 	std::vector<std::complex<double>> fft(std::vector<double> values, Timer* timer = nullptr);
+	std::vector<double> ifft(std::vector<std::complex<double>> values);
 }
+
 std::vector<std::vector<double>> readMatrix(const std::string& fileName, const decimalStyle& style = dot);
 
 template <typename T> 
@@ -39,4 +47,12 @@ void printVector(std::vector<T>& vector)
 	std::cout << ']' << std::endl;
 }
 
+template <typename T, int size>
+void printArray(std::array<T, size>& array)
+{
+	std::cout << '[';
+	for (size_t i = 0; i < size; ++i)
+		std::cout << array[i] << ' ';
+	std::cout << ']' << std::endl;
+}
 
