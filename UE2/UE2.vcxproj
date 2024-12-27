@@ -145,6 +145,7 @@
     <ClCompile Include="SF2.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="nstd.h" />
     <ClInclude Include="SF2.h" />
   </ItemGroup>
   <ItemGroup>

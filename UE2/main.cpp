@@ -3,13 +3,16 @@
 #include "matplot/matplot.h"
 #include "fftw3.h"
 #include "SF2.h"
-#include "VectorMath.h"
+//#include "VectorMath.h"
+#include <vector>
+#include "nstd.h"
 
-#define EXERCISE 14
+#define nstd_print(var) nstd::print(var, #var) // calls print with variable name in output
+#define EXERCISE 2
 
 namespace ct
 {
-	const double PI =  3.1415926535897932;
+	const double PI = 3.1415926535897932;
 	const std::string fileName = "txt_sound_file.txt";
 }
 
@@ -48,7 +51,7 @@ static std::vector<double> powerSpectrum(std::vector<std::complex<double>> funct
 int main()
 {
 
-// ------ 1a) ------
+	// ------ 1a) ------
 #if EXERCISE == 11
 	{
 		using matrix = std::vector<std::vector<double>>;
@@ -96,7 +99,7 @@ int main()
 	}
 #endif
 
-// ------ 1b) ------
+	// ------ 1b) ------
 #if EXERCISE == 12
 	{
 		Timer timerDFT;
@@ -138,7 +141,7 @@ int main()
 	}
 #endif
 
-// ------ 1c & d) ------
+	// ------ 1c & d) ------
 #if EXERCISE == 13
 	{
 		using matrix = std::vector<std::vector<double>>;
@@ -177,11 +180,12 @@ int main()
 	}
 #endif
 
-// ------ 1e) ------
+	// ------ 1e) ------
 #if EXERCISE == 14
 	{
 		std::cout << "\033[1;35m---------- Exercise 1e) ----------\033[0m" << std::endl;
-		std::cout << "The Fourier representation of a perfect tone would be a Dirac delta function delta(x - f_k) with f_k the fundamental frequency of the tone.";
+		std::cout << "The Fourier representation of a perfect tone would be a Dirac delta function delta(x - f_k) with f_k the fundamental frequency of the tone."
+			<< std::endl;
 
 		using matrix = std::vector<std::vector<double>>;
 		constexpr size_t numberOfPeaks = 5;
@@ -203,25 +207,25 @@ int main()
 		}
 
 		std::vector<double> approxmiatedSoundWave = fftw3::ifft(approximatedFFT);
-			
+
 		/* use matlab script to actually play the sound audio
 		- i cant be bother to install another library and figure
 		out how it works just for that
-	
+
 		the following Matlab code will give you a correct output
-		
+
 		data = readmatrix("approximatedFFT.txt")
 		Fs = 44100;
 		sound(data, Fs);
-		
-		just copy and paste, then you will hear that the tone is a 
+
+		just copy and paste, then you will hear that the tone is a
 		perfect D3.
 
-		alternatively, look at the wave form of the file in the 
+		alternatively, look at the wave form of the file in the
 		graph.
 		*/
 
-		
+
 		// writes output file with sound wave values
 		std::ofstream fs;
 		std::string fileName = "approximatedFFT.txt";
@@ -238,11 +242,44 @@ int main()
 			using namespace matplot;
 			figure();
 			plot(approxmiatedSoundWave);
+			xlabel("t");
+			ylabel("Amplitude");
 			show();
 		}
-
 #endif
-
 	}
 #endif
+
+	// ------ 2a) ------
+#if EXERCISE == 2
+	{
+		double number = 5.3;
+		using matrix = std::vector<std::vector<double>>;
+		std::vector<double> vector = { 1,2,3,4 };
+		std::array<double, 4> arr1 = { 1,2,3,4 };
+		std::array<double, 4> arr2 = { 1,2,3,4 };
+		std::array<double, 4> arr3;
+		matrix m1 = { {1,2,3,4},{1,2,3,4} };
+		matrix m2 = { {1,0,0,0},{0,0,0,1} };
+
+		matrix m3 = m1 + m2;
+		nstd_print(m1);
+		nstd_print(m2);
+		nstd_print(m3);
+
+		number = nstd::addNdimArray(number, number);
+		nstd_print(number);
+
+#ifdef NDEBUG
+		{
+			using namespace matplot;
+			figure();
+			show();
+		}
+#endif
+	}
+#endif
+
+
+
 }

@@ -26,6 +26,9 @@
     <ClInclude Include="SF2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nstd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="txt_sound_file.txt">
