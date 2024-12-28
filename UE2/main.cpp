@@ -149,7 +149,7 @@ int main()
 		int samplingRate = 44100;
 		size_t N = data[0].size();
 
-		std::vector<double> frequency = linspace(1, N, 0);
+		std::vector<double> frequency = g(1, N, 0);
 		frequency = frequency * samplingRate / N;
 
 		std::vector<std::complex<double>> fft = fftw3::fft(data[0]);
@@ -256,19 +256,20 @@ int main()
 		double number = 5.3;
 		using matrix = std::vector<std::vector<double>>;
 		std::vector<double> vector = { 1,2,3,4 };
+		std::vector<double> vector2 = { 1,2,3 };
 		std::array<double, 4> arr1 = { 1,2,3,4 };
 		std::array<double, 4> arr2 = { 1,2,3,4 };
 		std::array<double, 4> arr3;
 		matrix m1 = { {1,2,3,4},{1,2,3,4} };
-		matrix m2 = { {1,0,0,0},{0,0,0,1} };
+		matrix m2 = { {1,2,2,0},{0,0,0,1} };
 
 		matrix m3 = m1 + m2;
-		nstd_print(m1);
-		nstd_print(m2);
-		nstd_print(m3);
+		double n = nstd::scalarProduct1dimArray(arr1, arr2);
+		double g = nstd::scalarProduct1dimArray(vector, vector);
+		double t = nstd::scalarProduct1dimArray(m1, m2);
+		nstd_print(t);
 
 		number = nstd::addNdimArray(number, number);
-		nstd_print(number);
 
 #ifdef NDEBUG
 		{
