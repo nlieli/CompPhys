@@ -20,9 +20,7 @@ TO DO:
 -Extend VectorMath to matrices
 -create new Matrix specific functions
 	-Matrix-Vector Product && Matrix-Matrix Product
-	-diag() with offset functionality like Matlab
-	-diag iterator type? to find and set values on diags and their offsets
-	-return only specific elements: like matlabs Matrix(:,[1:4]) operations
+	-diag iterator type? to find and set values on diags and their offsets - done
 -find solution for different type precision
 -add rvalue recognition to print function
 -print function matrix overload
@@ -31,6 +29,7 @@ TO DO:
 
 #pragma once
 #include <type_traits>
+#include <iterator>
 #include <vector>
 
 /*
@@ -110,13 +109,17 @@ namespace nstd
 		using value_type = typename inner_container::value_type;
 		using pointer = const value_type*;
 		using reference = const value_type&;
+		using iterator_category = std::bidirectional_iterator_tag;
+		using difference_type = std::ptrdiff_t;
 
 	private:
 		size_t m_matrix_size;
 		size_t m_row;
 		size_t m_row_init;
+		size_t m_row_end;
 		size_t m_col;
 		size_t m_col_init;
+		size_t m_col_end;
 		const container* m_matrix;
 		int m_diagonal_identifier;
 
@@ -142,11 +145,15 @@ namespace nstd
 			{
 				m_row = 0;
 				m_col = diagonal_identifier;
+				m_row_end = m_matrix_size - diagonal_identifier;
+				m_col_end = m_matrix_size;
 			}
 			else
 			{
 				m_row = -diagonal_identifier;
 				m_col = 0;
+				m_row_end = m_matrix_size;
+				m_col_end = m_matrix_size + diagonal_identifier;
 			}
 			m_col_init = m_col;
 			m_row_init = m_row;
@@ -180,23 +187,27 @@ namespace nstd
 			return m_row != other.m_row || m_col != other.m_col;
 		}
 
+		difference_type operator-(const diagonal_iterator& other) const
+		{
+			return static_cast<difference_type>(m_row - other.m_row);
+		}
+
 		diagonal_iterator begin() const
 		{
 			diagonal_iterator begin_iterator = *this;
-			begin_iterator.m_col= m_col_init;
-			begin_iterator.m_row= m_row_init;
+			begin_iterator.m_col = m_col_init;
+			begin_iterator.m_row = m_row_init;
 			return begin_iterator;
 		}
 
 		diagonal_iterator end() const
 		{
 			diagonal_iterator end_iterator = *this;
-			end_iterator.m_row = m_matrix_size; 
-			end_iterator.m_col = m_matrix_size;
+			end_iterator.m_row = m_row_end; 
+			end_iterator.m_col = m_col_end;
 			return end_iterator;
 		}
 	};
-
 
 	// math functions
 	template <typename T>

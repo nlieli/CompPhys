@@ -274,14 +274,12 @@ int main()
 		*/
 
 		using matrix = std::vector<std::vector<double>>;
-		matrix m1 = { {1,2,3,4},{1,2,3,4}, {1,2,3,4}, {1,2,3,4} };
-		std::vector<double> vec = { 1,2,3,4 };
-		nstd::diagonal_iterator it(m1, 1);
-		nstd_print(*it);
-		//nstd_print(*(++it));
-		++it;
-		nstd_print(it == it.begin());
-		nstd::print(m1);
+		matrix m1 = { {1,2,3,4},{1,2,3,4}, {1,2,-3,4}, {1,2,-3,4} };
+		nstd::diagonal_iterator<matrix> it(m1,-2);
+		nstd::diagonal_iterator<matrix> end_it = it.end();
+
+		std::for_each(it, end_it, [](auto&& elem) {std::cout << elem; });
+
 
 #ifdef NDEBUG
 		{
