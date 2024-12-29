@@ -253,6 +253,7 @@ int main()
 	// ------ 2a) ------
 #if EXERCISE == 2
 	{
+		/*
 		double number = 5.3;
 		using matrix = std::vector<std::vector<double>>;
 		std::vector<double> vector = { 1,2,3,4 };
@@ -266,10 +267,21 @@ int main()
 		matrix m3 = m1 + m2;
 		double n = nstd::scalarProduct1dimArray(arr1, arr2);
 		double g = nstd::scalarProduct1dimArray(vector, vector);
-		double t = nstd::scalarProduct1dimArray(m1, m2);
-		nstd_print(t);
+		//double t = nstd::scalarProduct1dimArray(m1, m2);
+		nstd_print(g);
 
 		number = nstd::addNdimArray(number, number);
+		*/
+
+		using matrix = std::vector<std::vector<double>>;
+		matrix m1 = { {1,2,3,4},{1,2,3,4}, {1,2,3,4}, {1,2,3,4} };
+		std::vector<double> vec = { 1,2,3,4 };
+		nstd::diagonal_iterator it(m1, 1);
+		nstd_print(*it);
+		//nstd_print(*(++it));
+		++it;
+		nstd_print(it == it.begin());
+		nstd::print(m1);
 
 #ifdef NDEBUG
 		{

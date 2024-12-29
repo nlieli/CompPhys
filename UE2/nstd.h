@@ -8,7 +8,7 @@ TO DO:
 	-vectorSub - done
 	-vectorScalarMultiply - done
 	-vectorScalarDiv - done
-	-scalarProduct
+	-scalarProduct - done
 	-vectorScalarAdd
 	-vectorScalarSub
 	-cumsum
@@ -18,7 +18,11 @@ TO DO:
 	-vectorShiftLeft
 	-arrayErase
 -Extend VectorMath to matrices
--add diag and other functions
+-create new Matrix specific functions
+	-Matrix-Vector Product && Matrix-Matrix Product
+	-diag() with offset functionality like Matlab
+	-diag iterator type? to find and set values on diags and their offsets
+	-return only specific elements: like matlabs Matrix(:,[1:4]) operations
 -find solution for different type precision
 -add rvalue recognition to print function
 -print function matrix overload
@@ -31,7 +35,7 @@ TO DO:
 
 /*
 You may want to disable the overloads since they are part of the global name space
-and thus may interfere with some other functions. To disable set the macro 
+and thus may interfere with some other functions. To disable set the macro
 DISABLE_OVERLOADS to 1
 */
 #define DISABLE_OVERLOADS 0 
@@ -89,6 +93,110 @@ namespace nstd
 			std::cout << container << std::endl;
 		}
 	}
+
+	/*
+	iterator for n x n matrices that goes over diagonals
+	not a standard implementation for an iterator, since
+	the container doesnt provide suitable begin() and end()
+	functions and i dont want to create a wrapper, they are
+	integrated into this iterator type
+	*/
+	template <typename container>
+	class diagonal_iterator
+	{
+		// properties
+	public:
+		using inner_container = typename container::value_type;
+		using value_type = typename inner_container::value_type;
+		using pointer = const value_type*;
+		using reference = const value_type&;
+
+	private:
+		size_t m_matrix_size;
+		size_t m_row;
+		size_t m_row_init;
+		size_t m_col;
+		size_t m_col_init;
+		const container* m_matrix;
+		int m_diagonal_identifier;
+
+		// methods
+	public:
+		diagonal_iterator(const container& matrix, int diagonal_identifier = 0)
+			: m_matrix(&matrix), m_diagonal_identifier(diagonal_identifier), m_row(0), m_col(diagonal_identifier)
+		{
+			m_matrix_size = matrix.size();
+
+			if (m_matrix_size != matrix[0].size())
+			{
+				std::cerr << "\033[1;33m[WARNING]: Using non square matrices may lead to undefined behaviour\033[0m" << std::endl;
+			}
+
+			if (std::abs(diagonal_identifier) > m_matrix_size - 1)
+			{
+				std::cerr << "\033[1;31m[ERROR]: Matrix diagonal is out of bounds!\033[0m";
+				throw std::runtime_error("Out of bounds!");
+			}
+
+			if (diagonal_identifier >= 0)
+			{
+				m_row = 0;
+				m_col = diagonal_identifier;
+			}
+			else
+			{
+				m_row = -diagonal_identifier;
+				m_col = 0;
+			}
+			m_col_init = m_col;
+			m_row_init = m_row;
+		}
+
+		reference operator*() const { return (*m_matrix)[m_row][m_col]; }
+
+		pointer operator->() const { return &(*m_matrix)[m_row][m_col]; }
+
+		diagonal_iterator& operator++()
+		{
+			++m_row;
+			++m_col;
+			return *this;
+		}
+
+		diagonal_iterator& operator--()
+		{
+			--m_row;
+			--m_col;
+			return *this;
+		}
+
+		bool operator==(const diagonal_iterator& other) const
+		{
+			return m_row == other.m_row && m_col == other.m_col;
+		}
+
+		bool operator!=(const diagonal_iterator& other) const
+		{
+			return m_row != other.m_row || m_col != other.m_col;
+		}
+
+		diagonal_iterator begin() const
+		{
+			diagonal_iterator begin_iterator = *this;
+			begin_iterator.m_col= m_col_init;
+			begin_iterator.m_row= m_row_init;
+			return begin_iterator;
+		}
+
+		diagonal_iterator end() const
+		{
+			diagonal_iterator end_iterator = *this;
+			end_iterator.m_row = m_matrix_size; 
+			end_iterator.m_col = m_matrix_size;
+			return end_iterator;
+		}
+	};
+
 
 	// math functions
 	template <typename T>
@@ -152,7 +260,7 @@ namespace nstd
 	}
 
 	template <typename T, typename S>
-	T scalarMultNdimArray(const T& container, const S& scalar) 
+	T scalarMultNdimArray(const T& container, const S& scalar)
 	{
 		if constexpr (is_vector_or_array<T>::value)
 		{
@@ -204,17 +312,17 @@ namespace nstd
 	template <typename T>
 	std::enable_if_t<is_vector_or_array<T>::value && !is_n_dim_array<T>::value, double> scalarProduct1dimArray(const T& con1, const T& con2) // also works on matrix hmmmm...
 	{
-			size_t N = con1.size();
-			if (N != con2.size()) {
-				std::cerr << "\033[1;31m[ERROR] Containers must be the same size!\033[0m";
-				throw std::runtime_error("Incompatible sizes!");
-			}
+		size_t N = con1.size();
+		if (N != con2.size()) {
+			std::cerr << "\033[1;31m[ERROR] Containers must be the same size!\033[0m";
+			throw std::runtime_error("Incompatible sizes!");
+		}
 
-			double result = 0;
-			for (size_t i = 0; i < N; ++i)
-				result += con1[i] * con2[i];
+		double result = 0;
+		for (size_t i = 0; i < N; ++i)
+			result += con1[i] * con2[i];
 
-			return result;
+		return result;
 	}
 
 } // end of namespace
@@ -228,19 +336,25 @@ template <typename T>
 T operator-(const T& con1, const T& con2) { return nstd::subNdimArray(con1, con2); }
 
 template <typename T, typename S>
-std::enable_if_t<nstd::is_vector_or_array<T>::value && !std::is_same<T, S>::value, T> operator*(const T& container, const S& scalar) 
-{ return nstd::scalarMultNdimArray(container, scalar); }
+std::enable_if_t<nstd::is_vector_or_array<T>::value && !std::is_same<T, S>::value, T> operator*(const T& container, const S& scalar)
+{
+	return nstd::scalarMultNdimArray(container, scalar);
+}
 
 template <typename T, typename S>
-std::enable_if_t<nstd::is_vector_or_array<T>::value && !std::is_same<T, S>::value, T> operator*(const S& scalar, const T& container) 
-{ return nstd::scalarMultNdimArray(container, scalar); }
+std::enable_if_t<nstd::is_vector_or_array<T>::value && !std::is_same<T, S>::value, T> operator*(const S& scalar, const T& container)
+{
+	return nstd::scalarMultNdimArray(container, scalar);
+}
 
 template <typename T, typename S>
 T operator/(const T& container, const S& scalar) { return nstd::scalarDivNdimArray(container, scalar); }
 
 template <typename T>
-std::enable_if_t<nstd::is_vector_or_array<T>::value && !nstd::is_n_dim_array<T>::value, double> operator*(const T& con1, const T& con2) 
-{ return nstd::scalarProduct1dimArray(con1, con2); }
+std::enable_if_t<nstd::is_vector_or_array<T>::value && !nstd::is_n_dim_array<T>::value, double> operator*(const T& con1, const T& con2)
+{
+	return nstd::scalarProduct1dimArray(con1, con2);
+}
 
 #endif
 
