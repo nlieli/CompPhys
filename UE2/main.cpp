@@ -48,6 +48,124 @@ static std::vector<double> powerSpectrum(std::vector<std::complex<double>> funct
 	return result;
 }
 
+template <typename T, size_t S>
+struct TriDiSoQ 
+{
+	std::array<std::array<T, S>, S> m_matrix = { 0 };
+    std::array<T, S> m_rhsVec;
+
+    TriDiSoQ(const std::array<T, S + 2>& x, const std::array<T, S + 2>& y) {
+        std::array<T, S + 1> h;
+        std::array<T, S> v;
+        std::array<T, S + 1> b;
+        std::array<T, S> u;
+
+        for (size_t i = 0; i < S + 1; ++i)
+            h[i] = x[i + 1] - x[i];
+
+        for (size_t i = 0; i < S; ++i)
+            v[i] = 2 * (h[i] + h[i + 1]);
+
+        for (size_t i = 0; i < S + 1; ++i)
+            b[i] = (y[i + 1] - y[i]) / h[i];
+
+        for (size_t i = 0; i < S; ++i)
+            u[i] = 6 * (b[i + 1] - b[i]);
+
+        nstd::diagonal_iterator it(m_matrix);
+        nstd::diagonal_iterator it1(m_matrix, 1);
+        nstd::diagonal_iterator it2(m_matrix, -1);
+
+        for (size_t i = 0; it != it.end(); ++i) {
+            *it = v[i]; 
+            ++it;
+        }
+
+        for (size_t i = 0; it1 != it1.end(); ++i) {
+            *it1 = h[i];  
+            *it2 = *it1;  
+            ++it1;
+            ++it2;
+        }
+
+        m_rhsVec = u;
+    }
+
+	std::array<T, S + 2> solveLUDecomposition()
+	{
+		std::array<T, S> y = { 0 };
+		std::array<T, S + 2> z = { 0 };
+		nstd::diagonal_iterator main_it(m_matrix);
+		nstd::diagonal_iterator super_it(m_matrix, 1);
+		nstd::diagonal_iterator sub_it(m_matrix, -1);
+
+		std::array<T, S> main_diag;
+		std::array<T, S - 1> super_diag;
+		std::array<T, S - 1> sub_diag;
+		
+		for (size_t i = 0; main_it != main_it.end(); ++main_it, ++i)
+			main_diag[i] = *main_it;
+
+		for (size_t i = 0; super_it != super_it.end(); ++super_it, ++i)
+			super_diag[i] = *super_it;
+
+		for (size_t i = 0; sub_it != sub_it.end(); ++sub_it, ++i)
+			sub_diag[i] = *sub_it;
+
+		std::array<T, S> upper_main_diag;
+		std::array<T, S - 1> upper_super_diag;
+		std::array<T, S - 1> lower_sub_diag;
+
+		upper_main_diag[0] = main_diag[0];
+		upper_super_diag = super_diag;
+		
+		for (size_t i = 1; i < S; ++i)
+		{
+			lower_sub_diag[i - 1] = upper_super_diag[i - 1] / upper_main_diag[i - 1];
+			upper_main_diag[i] = main_diag[i] - upper_super_diag[i - 1] * lower_sub_diag[i - 1];
+		}
+		
+		y[0] = m_rhsVec[0];
+		for (size_t i = 1; i < S; ++i)
+		{
+			y[i] = m_rhsVec[i] - lower_sub_diag[i - 1] * y[i - 1];
+		}
+
+		z[S] = y[S - 1] / upper_main_diag[S - 1];
+		for (int i = S - 2; i >= 0; --i)
+		{
+			z[i + 1] = (y[i] - upper_super_diag[i] * z[i + 2]) / upper_main_diag[i];
+		}
+
+		return z;
+	}
+};
+
+template <typename T, size_t S>
+static spline createSplines(const std::array<T, S>& x, const std::array<T, S>& y, const std::array<T, S>& z, size_t N)
+{
+	spline results;
+	std::vector<double> ysegments;
+	std::vector<double> xsegments;
+	std::array<T, S - 1> h;
+	for (size_t i = 0; i < S - 1; ++i)
+		h[i] = x[i + 1] - x[i];
+
+	for (size_t i = 0; i < S - 2; ++i)
+	{
+		auto xValues = nstd::linspace<double>(x[i], x[i + 1], N);
+		ysegments = -z[i] / (6 * h[i]) * nstd::elemPowNdimArray((x[i + 1] - xValues), 3) +
+		     z[i + 1] / (6 * h[i]) * nstd::elemPowNdimArray((xValues - x[i]), 3) +
+			(y[i + 1] / h[i] - z[i + 1] / 6 * h[i]) * (xValues - x[i]) -
+			(y[i] / h[i] - h[i] / 6 * z[i]) * (x[i + 1] - xValues);
+		xsegments = xValues;
+		results.yValues.insert(results.yValues.end(), ysegments.begin(), ysegments.end());
+		results.xValues.insert(results.xValues.end(), xsegments.begin(), xsegments.end());
+	}
+
+	return results;
+}
+
 int main()
 {
 
@@ -253,38 +371,24 @@ int main()
 	// ------ 2a) ------
 #if EXERCISE == 2
 	{
-		/*
-		double number = 5.3;
-		using matrix = std::vector<std::vector<double>>;
-		std::vector<double> vector = { 1,2,3,4 };
-		std::vector<double> vector2 = { 1,2,3 };
-		std::array<double, 4> arr1 = { 1,2,3,4 };
-		std::array<double, 4> arr2 = { 1,2,3,4 };
-		std::array<double, 4> arr3;
-		matrix m1 = { {1,2,3,4},{1,2,3,4} };
-		matrix m2 = { {1,2,2,0},{0,0,0,1} };
+		const size_t xy_i = 11;
+		const size_t hv_i = 9;
+		using matrix = std::array<std::array<double, hv_i>, hv_i>;
+		std::array<double, xy_i> x = { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5 };
+		std::array<double, xy_i> y;
+		for (size_t j = 0; j < xy_i; ++j)
+			y[j] = 1 / (1 + (double) x[j] * x[j]);
 
-		matrix m3 = m1 + m2;
-		double n = nstd::scalarProduct1dimArray(arr1, arr2);
-		double g = nstd::scalarProduct1dimArray(vector, vector);
-		//double t = nstd::scalarProduct1dimArray(m1, m2);
-		nstd_print(g);
-
-		number = nstd::addNdimArray(number, number);
-		*/
-
-		using matrix = std::vector<std::vector<double>>;
-		matrix m1 = { {1,2,3,4},{1,2,3,4}, {1,2,-3,4}, {1,2,-3,4} };
-		nstd::diagonal_iterator<matrix> it(m1,-2);
-		nstd::diagonal_iterator<matrix> end_it = it.end();
-
-		std::for_each(it, end_it, [](auto&& elem) {std::cout << elem; });
-
+		TriDiSoQ<double, hv_i> system(x, y);
+		std::array<double, xy_i> z = system.solveLUDecomposition();
+		spline splines = createSplines(x, y, z, 100);
+		
 
 #ifdef NDEBUG
 		{
 			using namespace matplot;
 			figure();
+			plot(splines.xValues, splines.yValues);
 			show();
 		}
 #endif

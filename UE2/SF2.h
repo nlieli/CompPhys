@@ -56,3 +56,9 @@ void printArray(std::array<T, size>& array)
 	std::cout << ']' << std::endl;
 }
 
+struct spline
+{
+	std::vector<double> yValues;
+	std::vector<double> xValues;
+};
+

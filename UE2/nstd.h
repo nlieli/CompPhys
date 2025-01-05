@@ -26,11 +26,15 @@ TO DO:
 -print function matrix overload
 */
 
+// std::cerr << "\\033[38;2;255;255;0m[WARNING]: \033[0m" << std::endl;
+// std::cerr << "\033[1;31m[ERROR]: \033[0m";
+
 
 #pragma once
 #include <type_traits>
 #include <iterator>
 #include <vector>
+#include <optional>
 
 /*
 You may want to disable the overloads since they are part of the global name space
@@ -42,6 +46,18 @@ DISABLE_OVERLOADS to 1
 namespace nstd
 {
 	// custom type traits
+	template <typename T>
+	struct is_vector : std::false_type {};
+
+	template <typename T>
+	struct is_vector<std::vector<T>> : std::true_type {};
+
+	template <typename T>
+	struct is_array : std::false_type {};
+
+	template <typename T, size_t N>
+	struct is_array<std::array<T, N>> : std::true_type {};
+
 	template <typename T>
 	struct is_vector_or_array : std::false_type {};
 
@@ -98,7 +114,9 @@ namespace nstd
 	not a standard implementation for an iterator, since
 	the container doesnt provide suitable begin() and end()
 	functions and i dont want to create a wrapper, they are
-	integrated into this iterator type
+	integrated into this iterator type - the iterator is
+	fully usable with standard library algorithms such
+	as std::distance and std::for_each, etc.
 	*/
 	template <typename container>
 	class diagonal_iterator
@@ -107,8 +125,8 @@ namespace nstd
 	public:
 		using inner_container = typename container::value_type;
 		using value_type = typename inner_container::value_type;
-		using pointer = const value_type*;
-		using reference = const value_type&;
+		using pointer = value_type*;
+		using reference = value_type&;
 		using iterator_category = std::bidirectional_iterator_tag;
 		using difference_type = std::ptrdiff_t;
 
@@ -120,24 +138,24 @@ namespace nstd
 		size_t m_col;
 		size_t m_col_init;
 		size_t m_col_end;
-		const container* m_matrix;
+		container* m_matrix;
 		int m_diagonal_identifier;
 
 		// methods
 	public:
-		diagonal_iterator(const container& matrix, int diagonal_identifier = 0)
+		diagonal_iterator(container& matrix, int diagonal_identifier = 0)
 			: m_matrix(&matrix), m_diagonal_identifier(diagonal_identifier), m_row(0), m_col(diagonal_identifier)
 		{
 			m_matrix_size = matrix.size();
 
 			if (m_matrix_size != matrix[0].size())
 			{
-				std::cerr << "\033[1;33m[WARNING]: Using non square matrices may lead to undefined behaviour\033[0m" << std::endl;
+				std::cerr << "\033[38;2;255;255;0m[WARNING]: Using non square matrices may lead to undefined behaviour\033[0m" << std::endl;
 			}
 
 			if (std::abs(diagonal_identifier) > m_matrix_size - 1)
 			{
-				std::cerr << "\033[1;31m[ERROR]: Matrix diagonal is out of bounds!\033[0m";
+				std::cerr << "\033[1;31m[ERROR]: Matrix diagonal is out of bounds!\033[0m" << std::endl;
 				throw std::runtime_error("Out of bounds!");
 			}
 
@@ -159,9 +177,9 @@ namespace nstd
 			m_row_init = m_row;
 		}
 
-		reference operator*() const { return (*m_matrix)[m_row][m_col]; }
+		reference operator*() { return (*m_matrix)[m_row][m_col]; }
 
-		pointer operator->() const { return &(*m_matrix)[m_row][m_col]; }
+		pointer operator->() { return &(*m_matrix)[m_row][m_col]; }
 
 		diagonal_iterator& operator++()
 		{
@@ -189,7 +207,7 @@ namespace nstd
 
 		difference_type operator-(const diagonal_iterator& other) const
 		{
-			return static_cast<difference_type>(m_row - other.m_row);
+			return static_cast<difference_type>(m_col - other.m_col);
 		}
 
 		diagonal_iterator begin() const
@@ -203,11 +221,57 @@ namespace nstd
 		diagonal_iterator end() const
 		{
 			diagonal_iterator end_iterator = *this;
-			end_iterator.m_row = m_row_end; 
+			end_iterator.m_row = m_row_end;
 			end_iterator.m_col = m_col_end;
 			return end_iterator;
 		}
 	};
+
+	// make sure to specify T when calling the function
+	// for arrays use: auto arr = nstd::linspace<T, std::array<T, points>>(end, start)
+	template <typename T, typename container = std::vector<T>>
+    container linspace(T start, T end, std::size_t points = 0) 
+    {
+        static_assert(is_vector_or_array<container>::value, "Container must be an array or vector!");
+        double step;
+        container result;
+
+        if constexpr (is_array<container>::value)
+        {
+			if ((points != 0) && points != std::tuple_size_v<container>)
+			{
+				std::cerr << "\033[1;31m[ERROR]: Container size must equal number of points!" << std::endl;
+				throw std::runtime_error("Contianer and point size don't match.");
+			}
+			else
+			{
+				points = std::tuple_size_v<container>;
+			}
+        }
+
+
+        if (points == 0)
+        {
+            step = (end > start) ? 1 : -1;
+			points = static_cast<std::size_t>(std::abs(end - start) + 1);
+        }
+        else
+        {
+            step = static_cast<double>((end - start) / (points - 1));
+        }
+
+        if constexpr (is_vector<container>::value)
+        {
+            result.resize(points);
+        }
+
+        for (size_t i = 0; i < points; ++i)
+        {
+            result[i] = start + i * step;
+        }
+
+        return result;
+    }
 
 	// math functions
 	template <typename T>
@@ -240,6 +304,32 @@ namespace nstd
 		}
 	}
 
+	template <typename T, typename S>
+	T scalarAddNdimArray(const T& container, const S& scalar)
+	{
+		if constexpr (is_vector_or_array<T>::value)
+		{
+			T result = container;
+			for (size_t i = 0; i < container.size(); ++i)
+			{
+				if constexpr (is_n_dim_array<T>::value)
+				{
+					result[i] = scalarAddNdimArray(container[i], scalar);
+				}
+				else
+				{
+					result[i] = container[i] + scalar;
+				}
+			}
+			return result;
+		}
+		else
+		{
+			return container + scalar;
+		}
+
+	}
+
 	template <typename T>
 	T subNdimArray(const T& con1, const T& con2)
 	{
@@ -268,6 +358,32 @@ namespace nstd
 		{
 			return con1 - con2;
 		}
+	}
+
+	template <typename T, typename S>
+	T scalarSubNdimArray(const T& container, const S& scalar)
+	{
+		if constexpr (is_vector_or_array<T>::value)
+		{
+			T result = container;
+			for (size_t i = 0; i < container.size(); ++i)
+			{
+				if constexpr (is_n_dim_array<T>::value)
+				{
+					result[i] = scalarSubNdimArray(container[i], scalar);
+				}
+				else
+				{
+					result[i] = container[i] - scalar;
+				}
+			}
+			return result;
+		}
+		else
+		{
+			return container - scalar;
+		}
+
 	}
 
 	template <typename T, typename S>
@@ -320,6 +436,32 @@ namespace nstd
 		}
 	}
 
+	template <typename T, typename S>
+	T elemPowNdimArray(const T& container, const S& scalar)
+	{
+		if constexpr (is_vector_or_array<T>::value)
+		{
+			T result = container;
+			for (size_t i = 0; i < container.size(); ++i)
+			{
+				if constexpr (is_n_dim_array<T>::value)
+				{
+					result[i] = elemPowNdimArray(container[i], scalar);
+				}
+				else
+				{
+					result[i] = std::pow(container[i], scalar);
+				}
+			}
+			return result;
+		}
+		else
+		{
+			return std::pow(container, scalar);
+		}
+
+	}
+
 	template <typename T>
 	std::enable_if_t<is_vector_or_array<T>::value && !is_n_dim_array<T>::value, double> scalarProduct1dimArray(const T& con1, const T& con2) // also works on matrix hmmmm...
 	{
@@ -343,8 +485,32 @@ namespace nstd
 template <typename T>
 T operator+(const T& con1, const T& con2) { return nstd::addNdimArray(con1, con2); }
 
+template <typename T, typename S>
+std::enable_if_t<nstd::is_vector_or_array<T>::value && !std::is_same<T, S>::value, T> operator+(const T& container, const S& scalar)
+{
+	return nstd::scalarAddNdimArray(container, scalar);
+}
+
+template <typename T, typename S>
+std::enable_if_t<nstd::is_vector_or_array<T>::value && !std::is_same<T, S>::value, T> operator+(const S& scalar, const T& container)
+{
+	return nstd::scalarAddNdimArray(container, scalar);
+}
+
 template <typename T>
 T operator-(const T& con1, const T& con2) { return nstd::subNdimArray(con1, con2); }
+
+template <typename T, typename S>
+std::enable_if_t<nstd::is_vector_or_array<T>::value && !std::is_same<T, S>::value, T> operator-(const T& container, const S& scalar)
+{
+	return nstd::scalarSubNdimArray(container, scalar);
+}
+
+template <typename T, typename S>
+std::enable_if_t<nstd::is_vector_or_array<T>::value && !std::is_same<T, S>::value, T> operator-(const S& scalar, const T& container)
+{
+	return nstd::scalarSubNdimArray(container, scalar);
+}
 
 template <typename T, typename S>
 std::enable_if_t<nstd::is_vector_or_array<T>::value && !std::is_same<T, S>::value, T> operator*(const T& container, const S& scalar)
@@ -365,6 +531,12 @@ template <typename T>
 std::enable_if_t<nstd::is_vector_or_array<T>::value && !nstd::is_n_dim_array<T>::value, double> operator*(const T& con1, const T& con2)
 {
 	return nstd::scalarProduct1dimArray(con1, con2);
+}
+
+template <typename T, typename S>
+T operator^(const T& container, const S& scalar)
+{
+	return nstd::elemPowNdimArray(container, scalar);
 }
 
 #endif
