@@ -5,6 +5,7 @@
 #include "SF2.h"
 //#include "VectorMath.h"
 #include <vector>
+#include <algorithm>
 #include "nstd.h"
 
 #define nstd_print(var) nstd::print(var, #var) // calls print with variable name in output
@@ -53,12 +54,13 @@ struct TriDiSoQ
 {
 	std::array<std::array<T, S>, S> m_matrix = { 0 };
     std::array<T, S> m_rhsVec;
+	std::array<T, S> u;
 
     TriDiSoQ(const std::array<T, S + 2>& x, const std::array<T, S + 2>& y) {
         std::array<T, S + 1> h;
         std::array<T, S> v;
         std::array<T, S + 1> b;
-        std::array<T, S> u;
+        //std::array<T, S> u;
 
         for (size_t i = 0; i < S + 1; ++i)
             h[i] = x[i + 1] - x[i];
@@ -383,12 +385,42 @@ int main()
 		std::array<double, xy_i> z = system.solveLUDecomposition();
 		spline splines = createSplines(x, y, z, 100);
 		
+		size_t relaxations_values = 100;
+		auto omega = nstd::linspace(0.1, 1.9, relaxations_values);
 
+		matrix A = system.m_matrix;
+		for (nstd::diagonal_iterator it(A); it != it.end(); ++it)
+			*it = 0;
+
+		std::vector<double> iterations(relaxations_values, 0.0);
+		std::array<double, xy_i> z_approximation = { 0 };
+		std::array<double, hv_i> z_approximation_small = { 0 };
+		std::array<double, xy_i> diff;
+		double tolerance = 1e-12;
+
+		for (size_t i = 0; i < relaxations_values; ++i)
+		{
+			do 
+			{
+				for (size_t j = 0; j < hv_i; ++j)
+				{
+					z_approximation[j + 1] = (1 - omega[i]) * z_approximation[j + 1] + omega[i] / system.m_matrix[j][j] * (system.u[j] - A[j] * z_approximation_small);
+					std::copy(z_approximation.begin() + 1, z_approximation.end() - 1, z_approximation_small.begin());
+				}
+				++iterations[i];
+				diff = nstd::absNdimArray(z_approximation - z);
+			} while (*std::max_element(diff.begin(), diff.end()) > tolerance);
+			std::fill(z_approximation.begin(), z_approximation.end(), 0);
+			std::fill(z_approximation_small.begin(), z_approximation_small.end(), 0);
+		}
+		
 #ifdef NDEBUG
 		{
 			using namespace matplot;
 			figure();
 			plot(splines.xValues, splines.yValues);
+			figure();
+			plot(iterations);
 			show();
 		}
 #endif

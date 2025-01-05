@@ -275,6 +275,32 @@ namespace nstd
 
 	// math functions
 	template <typename T>
+	T absNdimArray(const T& container)
+	{
+		if constexpr (is_vector_or_array<T>::value)
+		{
+			T result = container;
+			for (size_t i = 0; i < container.size(); ++i)
+			{
+				if constexpr (is_n_dim_array<T>::value)
+				{
+					result[i] = absNdimArray(container[i]);
+				}
+				else
+				{
+					result[i] = std::abs(container[i]);
+				}
+			}
+			return result;
+		}
+		else
+		{
+			return std::abs(container);
+		}
+
+	}
+
+	template <typename T>
 	T addNdimArray(const T& con1, const T& con2)
 	{
 		if constexpr (is_vector_or_array<T>::value)
