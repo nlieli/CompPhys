@@ -487,22 +487,20 @@ int main()
 			for (size_t j = 0; j < iterations; ++j)
 			{
 				powerMethodVec = K * powerMethodVec;
-				nstd::normalizeVector(powerMethodVec);
+				powerMethodVec = 1 / std::sqrt(powerMethodVec * powerMethodVec) * powerMethodVec;
 			}
 
 			lambda[i] = powerMethodVec * (K * powerMethodVec) / (powerMethodVec * powerMethodVec);
 			eigenVectors[i] = powerMethodVec;
-			K = K - lambda[i] * (powerMethodVec * powerMethodVec);
+			K = K - lambda[i] * nstd::vectorProdToMatrix(powerMethodVec, powerMethodVec);
 		}
-		nstd_print(eigenVectors);
 
 #ifdef NDEBUG
 		{
 			using namespace matplot;
 			figure();
 			hold(on);
-			for (size_t i = 0; i < numberOfEigenVectors; ++i)
-				plot(z, eigenVectors[i]);
+			plot(powerMethodVec);
 			show();
 		}
 #endif

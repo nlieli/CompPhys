@@ -561,19 +561,23 @@ namespace nstd
 	}
 
 	template <typename T>
-	void normalizeVector(std::vector<T>& con1)
+	std::vector<std::vector<T>> vectorProdToMatrix(std::vector<T>& con1, std::vector<T>& con2)
 	{
-		T sum = 0;
-		for (auto elem : con1)
-			sum += elem;
+		size_t rows = con1.size();
+		size_t cols = con2.size();
+		std::vector<std::vector<T>> result(rows, std::vector<T>(cols));
 
-		sum = std::sqrt(sum);
-
-		for (size_t i = 0; i < con1.size(); ++i)
+		for (size_t i = 0; i < rows; ++i)
 		{
-			con1[i] /= sum;
+			for (size_t j = 0; j < cols; ++j)
+			{
+				result[i][j] = con1[i] * con2[j];
+			}
 		}
+
+		return result;
 	}
+
 
 } // end of namespace
 
