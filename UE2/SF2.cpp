@@ -52,9 +52,9 @@ std::vector<std::vector<double>> readMatrix(const std::string& fileName, const d
 	size_t columns = 0;
 
 	if (style == dot)
-		reg = "(-?\\d*.?\\d+e?[-+]\\d*)"; // decimal point system, captures all numbers using this style 
+		reg = "(-?\\d*.?\\d+(?:e?[-+]\\d*)?)"; // decimal point system, captures all numbers using this style 
 	else
-		reg = "(-?\\d*,?\\d+e?[-+]\\d*)"; // decimal comma system, captures all numbers using this style
+		reg = "-?\\d+\\.?\\d*"; // decimal comma system, captures all numbers using this style
 
 	fs.open(fileName, std::ios::in);
 	if (!fs.is_open()) { std::cerr << "[ERROR] File stream did not open successfully!" << std::endl;  return Matrix; }
@@ -64,6 +64,10 @@ std::vector<std::vector<double>> readMatrix(const std::string& fileName, const d
 	std::smatch matches;
 	std::regex_search(row, matches, reg);
 	columns = matches.size();
+	if (style == dot)
+		columns = 2;
+	else
+		columns = 4;
 	Matrix.resize(columns);
 	double value;
 

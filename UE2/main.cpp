@@ -9,12 +9,13 @@
 #include "nstd.h"
 
 #define nstd_print(var) nstd::print(var, #var) // calls print with variable name in output
-#define EXERCISE 2
+#define EXERCISE 3
 
 namespace ct
 {
 	const double PI = 3.1415926535897932;
 	const std::string fileName = "txt_sound_file.txt";
+	const std::string fileName2 = "dna_coordinates.txt";
 }
 
 static std::vector<std::complex<double>> discreteFourierTransform(std::vector<double> function, Timer* timer = nullptr)
@@ -170,7 +171,6 @@ static spline createSplines(const std::array<T, S>& x, const std::array<T, S>& y
 
 int main()
 {
-
 	// ------ 1a) ------
 #if EXERCISE == 11
 	{
@@ -370,7 +370,7 @@ int main()
 	}
 #endif
 
-	// ------ 2a) ------
+	// ------ 2) ------
 #if EXERCISE == 2
 	{
 		const size_t xy_i = 11;
@@ -379,12 +379,12 @@ int main()
 		std::array<double, xy_i> x = { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5 };
 		std::array<double, xy_i> y;
 		for (size_t j = 0; j < xy_i; ++j)
-			y[j] = 1 / (1 + (double) x[j] * x[j]);
+			y[j] = 1 / (1 + (double)x[j] * x[j]);
 
 		TriDiSoQ<double, hv_i> system(x, y);
 		std::array<double, xy_i> z = system.solveLUDecomposition();
 		spline splines = createSplines(x, y, z, 100);
-		
+
 		size_t relaxations_values = 100;
 		auto omega = nstd::linspace(0.1, 1.9, relaxations_values);
 
@@ -400,11 +400,12 @@ int main()
 
 		for (size_t i = 0; i < relaxations_values; ++i)
 		{
-			do 
+			do
 			{
 				for (size_t j = 0; j < hv_i; ++j)
 				{
-					z_approximation[j + 1] = (1 - omega[i]) * z_approximation[j + 1] + omega[i] / system.m_matrix[j][j] * (system.u[j] - A[j] * z_approximation_small);
+					z_approximation[j + 1] = (1 - omega[i]) * z_approximation[j + 1] + omega[i] / system.m_matrix[j][j] *
+						(system.u[j] - A[j] * z_approximation_small);
 					std::copy(z_approximation.begin() + 1, z_approximation.end() - 1, z_approximation_small.begin());
 				}
 				++iterations[i];
@@ -413,7 +414,7 @@ int main()
 			std::fill(z_approximation.begin(), z_approximation.end(), 0);
 			std::fill(z_approximation_small.begin(), z_approximation_small.end(), 0);
 		}
-		
+
 #ifdef NDEBUG
 		{
 			using namespace matplot;
@@ -427,6 +428,85 @@ int main()
 	}
 #endif
 
+	// ------ 3) ------
+#if EXERCISE == 3
+	{
+		using matrix = std::vector<std::vector<double>>;
+		matrix data = readMatrix(ct::fileName2, comma);
+		std::vector<double> x = data[0];
+		std::vector<double> y = data[1];
+		std::vector<double> z = data[2];
+		std::vector<double> m = data[3];
+		size_t N = data[0].size();
+		matrix H(N, std::vector<double>(N, 0));
+		matrix M(N, std::vector<double>(N, 0));
+		matrix mInvRoots(N, std::vector<double>(N, 0));
 
+		const int R_cut= 5;
+		const int k = 1;
+
+		double dx, dy, dz;
+		double R;
+		int neighbouringAtoms = 0;
+
+		for (size_t i = 0; i < N; ++i)
+		{
+			for (size_t j = 0; j < N; ++j)
+			{
+				if (i != j)
+				{
+					dx = x[i] - x[j];
+					dy = y[i] - y[j];
+					dz = z[i] - z[j];
+
+					R = std::sqrt(dx * dx + dy * dy + dz * dz);
+					if (R < R_cut)
+					{
+						++neighbouringAtoms;
+						H[i][j] = -k;
+					}
+				}
+			}
+
+			H[i][i] = neighbouringAtoms * k;
+			M[i][i] = m[i];
+			mInvRoots[i][i] = 1 / std::sqrt(m[i]);
+		}
+	
+		size_t numberOfEigenVectors = 10;
+		matrix K = mInvRoots * H * mInvRoots;
+		matrix K_deflation(N, std::vector<double>(N));
+		matrix eigenVectors(numberOfEigenVectors, std::vector<double>(N));
+
+		size_t iterations = 100;
+		std::vector<double> lambda(N);
+		std::vector<double> powerMethodVec(N, 1.0);
+
+		for (size_t i = 0; i < numberOfEigenVectors; ++i)
+		{
+			for (size_t j = 0; j < iterations; ++j)
+			{
+				powerMethodVec = K * powerMethodVec;
+				nstd::normalizeVector(powerMethodVec);
+			}
+
+			lambda[i] = powerMethodVec * (K * powerMethodVec) / (powerMethodVec * powerMethodVec);
+			eigenVectors[i] = powerMethodVec;
+			K = K - lambda[i] * (powerMethodVec * powerMethodVec);
+		}
+		nstd_print(eigenVectors);
+
+#ifdef NDEBUG
+		{
+			using namespace matplot;
+			figure();
+			hold(on);
+			for (size_t i = 0; i < numberOfEigenVectors; ++i)
+				plot(z, eigenVectors[i]);
+			show();
+		}
+#endif
+	}
+#endif
 
 }

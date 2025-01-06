@@ -74,7 +74,7 @@ namespace nstd
 	struct is_n_dim_array<std::vector<std::vector<T>>> : std::true_type {};
 
 	template <typename T, size_t J, size_t K>
-	struct is_n_dim_array < std::array<std::array<T, J>, K>> :std::true_type {};
+	struct is_n_dim_array < std::array<std::array<T, J>, K>> : std::true_type {};
 
 	// utility functions
 	template <typename T>
@@ -504,6 +504,77 @@ namespace nstd
 		return result;
 	}
 
+	template <typename T>
+	std::vector<std::vector<T>> matrixMultiplication(const std::vector<std::vector<T>>& con1, const std::vector<std::vector<T>>& con2)
+	{
+		size_t n1 = con1.size();
+		size_t m1 = con1[0].size();
+		size_t n2 = con2.size();
+		size_t m2 = con2[0].size();
+
+		if (m1 != n2)
+		{
+			std::cerr << "\033[1;31m[ERROR]: Matrices have incompatible sizes!" << std::endl;
+			throw std::runtime_error("Incompatible Sizes");
+		}
+
+		std::vector<std::vector<T>> result(m1, std::vector<T>(n2));
+
+		for (size_t i = 0; i < m1; ++i)
+		{
+			for (size_t k = 0; k < n1; ++k)
+			{
+				for (size_t j = 0; j < n2; ++j)
+				{
+					result[i][j] += con1[i][k] * con2[k][j];
+				}
+			}
+		}
+
+		return result;
+	}
+
+	template <typename T>
+	std::vector<T> matrixVectorMultiplication(const std::vector<std::vector<T>>& con1, const std::vector<T>& con2)
+	{
+		size_t n1 = con1.size();
+		size_t m1 = con1[0].size();
+		size_t n2 = con2.size();
+
+		if (m1 != n2)
+		{
+			std::cerr << "\033[1;31m[ERROR]: Matrices have incompatible sizes!" << std::endl;
+			throw std::runtime_error("Incompatible Sizes");
+		}
+
+		std::vector<T> result(m1);
+
+		for (size_t i = 0; i < m1; ++i)
+		{
+			for (size_t j = 0; j < n1; ++j)
+			{
+				result[i] += con1[i][j] * con2[j];
+			}
+		}
+
+		return result;
+	}
+
+	template <typename T>
+	void normalizeVector(std::vector<T>& con1)
+	{
+		T sum = 0;
+		for (auto elem : con1)
+			sum += elem;
+
+		sum = std::sqrt(sum);
+
+		for (size_t i = 0; i < con1.size(); ++i)
+		{
+			con1[i] /= sum;
+		}
+	}
+
 } // end of namespace
 
 // operator overloads
@@ -548,6 +619,18 @@ template <typename T, typename S>
 std::enable_if_t<nstd::is_vector_or_array<T>::value && !std::is_same<T, S>::value, T> operator*(const S& scalar, const T& container)
 {
 	return nstd::scalarMultNdimArray(container, scalar);
+}
+
+template <typename T>
+std::vector<std::vector<T>> operator*(const std::vector<std::vector<T>>& con1, const std::vector<std::vector<T>>& con2)
+{
+	return nstd::matrixMultiplication(con1, con2);
+}
+
+template <typename T>
+std::vector<T> operator*(const std::vector<std::vector<T>>& con1, const std::vector<T>& con2)
+{
+	return nstd::matrixVectorMultiplication(con1, con2);
 }
 
 template <typename T, typename S>

@@ -149,6 +149,7 @@
     <ClInclude Include="SF2.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="dna_coordinates.txt" />
     <Text Include="txt_sound_file.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

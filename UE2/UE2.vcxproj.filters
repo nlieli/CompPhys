@@ -34,5 +34,8 @@
     <Text Include="txt_sound_file.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="dna_coordinates.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
