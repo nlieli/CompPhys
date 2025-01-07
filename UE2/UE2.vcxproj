@@ -114,7 +114,7 @@
       <AdditionalDependencies>matplot.lib;nodesoup.lib;libfftw3-3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /d /y "$(SolutionDir)\Dependencies\fftw\bin\*.*" "$(TargetDir)"</Command>
+      <Command>xcopy /d /y "$(SolutionDir)\Dependencies\fftw\bin_lib\*.*" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
