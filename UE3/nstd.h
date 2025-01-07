@@ -29,7 +29,6 @@ TO DO:
 // std::cerr << "\\033[38;2;255;255;0m[WARNING]: \033[0m" << std::endl;
 // std::cerr << "\033[1;31m[ERROR]: \033[0m";
 
-// !!! IMPORTANT !!! Always #include this file last in your project to avoid overload conflicts
 
 #pragma once
 #include <type_traits>
