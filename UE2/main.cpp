@@ -451,6 +451,7 @@ int main()
 
 		for (size_t i = 0; i < N; ++i)
 		{
+			neighbouringAtoms = 0;
 			for (size_t j = 0; j < N; ++j)
 			{
 				if (i != j)
@@ -479,7 +480,7 @@ int main()
 		matrix eigenVectors(numberOfEigenVectors, std::vector<double>(N));
 
 		size_t iterations = 100;
-		std::vector<double> lambda(N);
+		std::vector<double> lambda(numberOfEigenVectors);
 		std::vector<double> powerMethodVec(N, 1.0);
 
 		for (size_t i = 0; i < numberOfEigenVectors; ++i)
@@ -489,7 +490,6 @@ int main()
 				powerMethodVec = K * powerMethodVec;
 				powerMethodVec = 1 / std::sqrt(powerMethodVec * powerMethodVec) * powerMethodVec;
 			}
-
 			lambda[i] = powerMethodVec * (K * powerMethodVec) / (powerMethodVec * powerMethodVec);
 			eigenVectors[i] = powerMethodVec;
 			K = K - lambda[i] * nstd::vectorProdToMatrix(powerMethodVec, powerMethodVec);
@@ -500,7 +500,8 @@ int main()
 			using namespace matplot;
 			figure();
 			hold(on);
-			plot(powerMethodVec);
+			for (size_t i = 0; i < 2; ++i)
+				plot(z, eigenVectors[i]);
 			show();
 		}
 #endif
