@@ -49,8 +49,8 @@ public:
 private:
 	void updateXYZPos()
 	{
-		m_position[0] = m_R * std::sin(m_phi) * std::sin(m_theta);
-		m_position[1] = m_R * std::cos(m_phi) * std::sin(m_theta);
+		m_position[0] = m_R * std::cos(m_phi) * std::sin(m_theta);
+		m_position[1] = m_R * std::sin(m_phi) * std::sin(m_theta);
 		m_position[2] = m_R * std::cos(m_theta);
 	}
 };
@@ -67,7 +67,7 @@ struct chargeDistribution
 	// properties
 public:
 	double m_gradientStepSize = 1e-4;
-	double m_gradientDescentIterations = 10000;
+	double m_gradientDescentIterations = 100000;
 
 private:
 	double m_energy;
@@ -95,20 +95,39 @@ public:
 	void calculatePotentialEnergy()
 	{
 		m_energy = 0;
+		double correctionFactor = 1;
 		size_t numCharges = m_charges.size();
 		std::vector<double> r_jk(numCharges);
+		double r = 0;
 
 		for (size_t i = 0; i < numCharges; ++i)
 		{
-			r_jk[i] = std::sqrt((m_charges[i].position() - m_charges[(i + 1) % numCharges].position()) * (m_charges[i].position() - m_charges[(i + 1) % numCharges].position()));
-			m_energy += m_charges[i].value() * m_charges[(i + 1) % numCharges].value() / (4 * ct::PI * ct::epsilon0 * r_jk[i]);
+			for (size_t j = (i + 1); j < numCharges; ++j)
+			{
+				charge& q1 = m_charges[i];
+				charge& q2 = m_charges[j];
+
+				double x1 = std::cos(q1.phi()) * std::sin(q1.theta());
+				double y1 = std::sin(q1.phi()) * std::sin(q1.theta());
+				double z1 = std::cos(q1.theta());
+
+				double x2 = std::cos(q2.phi()) * std::sin(q2.theta());
+				double y2 = std::sin(q2.phi()) * std::sin(q2.theta());
+				double z2 = std::cos(q2.theta());
+
+				//r = std::acos(std::sin(m_charges[i].theta()) * std::sin(m_charges[j].theta()) * std::cos(m_charges[i].phi() -
+					//m_charges[j].phi()) + std::cos(m_charges[i].theta()) * std::cos(m_charges[j].theta()));
+				r = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2));
+				m_energy += 1 / r; //* m_charges[i].value() * m_charges[j].value() * (4 * ct::PI * ct::epsilon0 * r_jk[i]);
+			}
 		}
 	}
 
-	void minizeEnergy()
+	void minimizeEnergy()
 	{
 		for (size_t i = 0; i < m_gradientDescentIterations; ++i)
 		{
+			findGradient();
 			for (size_t j = 0; j < m_numCharges; ++j)
 			{
 				charge& q = m_charges[j];
@@ -120,7 +139,6 @@ public:
 
 				q.updatePosition(phi, theta, R);
 			}
-			findGradient();
 		}
 	}
 
@@ -172,10 +190,10 @@ private:
 			m_gradient[i].m_R_gradient = (m_energy - initialEnergy) / m_gradientStepSize;
 			R = initialR;
 			q.updatePosition(phi, theta, R);
+
 		}
 
-		updateDistribution(m_charges);
-		calculatePotentialEnergy();
+			updateDistribution(m_charges);
 	}
 
 };
@@ -184,7 +202,7 @@ int main()
 {
 #if EXERCISE == 1
 	{
-		const int numCharges = 6;
+		const int numCharges = 4;
 		std::vector<charge> charges;
 		std::random_device rd;
 		std::uniform_real_distribution<double> phiDist(0.0, 2 * ct::PI);
@@ -197,7 +215,7 @@ int main()
 		}
 
 		chargeDistribution dist(charges);
-		dist.minizeEnergy();
+		dist.minimizeEnergy();
 
 		std::vector<double> x1;
 		std::vector<double> y1;
@@ -250,7 +268,6 @@ int main()
 			auto S = mesh(X, Y, Z);
 			S->edge_color("k");
 			S->hidden_3d(false);
-			S->face_alpha(0.3);
 			hold(on);
 			plot3(x1, y1, z1, "r.");
 			show();
