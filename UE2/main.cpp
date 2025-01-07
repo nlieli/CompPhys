@@ -479,7 +479,7 @@ int main()
 		matrix K_deflation(N, std::vector<double>(N));
 		matrix eigenVectors(numberOfEigenVectors, std::vector<double>(N));
 
-		size_t iterations = 100;
+		size_t iterations = 1000;
 		std::vector<double> lambda(numberOfEigenVectors);
 		std::vector<double> powerMethodVec(N, 1.0);
 
@@ -494,14 +494,64 @@ int main()
 			eigenVectors[i] = powerMethodVec;
 			K = K - lambda[i] * nstd::vectorProdToMatrix(powerMethodVec, powerMethodVec);
 		}
+		matrix firstStrand(eigenVectors.size(), std::vector<double>(eigenVectors[0].size() / 2));
+		matrix secondStrand(eigenVectors.size(), std::vector<double>(eigenVectors[0].size() / 2 + 1));
+		std::vector<double> zFirstStrand(z.size() / 2);
+		std::vector<double> zSecondStrand(z.size() / 2 + 1);
+
+		for (size_t i = 0; i < eigenVectors.size(); ++i) {
+			std::copy(eigenVectors[i].begin(), eigenVectors[i].begin() + eigenVectors[i].size() / 2, firstStrand[i].begin());
+			std::copy(eigenVectors[i].begin() + eigenVectors[i].size() / 2, eigenVectors[i].end(), secondStrand[i].begin());
+		}
+
+		std::copy(z.begin(), z.begin() + z.size() / 2, zFirstStrand.begin());
+		std::copy(z.begin() + z.size() / 2, z.end(), zSecondStrand.begin());
 
 #ifdef NDEBUG
 		{
 			using namespace matplot;
+			std::cout << "\033[1;35m---------- Exercise 3) ----------\033[0m" << std::endl;
+			std::cout << "First Strand is \033[1;38;2;0;150;255mblue\033[0m" << std::endl;
+			std::cout << "Second Strand is \033[1;38;2;255;115;0morange\033[0m" << std::endl;
+
 			figure();
-			hold(on);
-			for (size_t i = 0; i < 2; ++i)
-				plot(z, eigenVectors[i]);
+			for (size_t i = 0; i < 4; ++i)
+			{
+				subplot(2, 2, i);
+				plot(zFirstStrand, firstStrand[i]);
+				hold(on);
+				plot(zSecondStrand, secondStrand[i]);
+				std::string stitle = "lambda = ";
+				std::string lm = std::to_string(lambda[i]);
+				stitle = stitle + lm;
+				title(stitle);
+			}
+
+			figure();
+			for (size_t i = 4; i < 8; ++i)
+			{
+				subplot(2, 2, i);
+				plot(zFirstStrand, firstStrand[i]);
+				hold(on);
+				plot(zSecondStrand, secondStrand[i]);
+				std::string stitle = "lambda = ";
+				std::string lm = std::to_string(lambda[i]);
+				stitle = stitle + lm;
+				title(stitle);
+			}
+
+			figure();
+			for (size_t i = 8; i < 10; ++i)
+			{
+				subplot(1, 2, i);
+				plot(zFirstStrand, firstStrand[i]);
+				hold(on);
+				plot(zSecondStrand, secondStrand[i]);
+				std::string stitle = "lambda = ";
+				std::string lm = std::to_string(lambda[i]);
+				stitle = stitle + lm;
+				title(stitle);
+			}
 			show();
 		}
 #endif
