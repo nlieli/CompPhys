@@ -3,13 +3,15 @@
 #include "matplot/matplot.h"
 #include "nstd.h" 
 
-#define EXERCISE 1
+#define EXERCISE 4
 #define nstd_print(var) nstd::print(var, #var)
 
 namespace ct
 {
-	const double epsilon0 = 8.854187817e-12;
-	const double PI = 3.14159265359;
+	constexpr double epsilon0 = 8.854187817e-12;
+	constexpr double PI = 3.14159265359;
+	constexpr double h = 6.62607015e-34;
+	constexpr double hbar = ct::h / (2 * ct::PI);
 }
 
 struct charge
@@ -118,7 +120,7 @@ public:
 				//r = std::acos(std::sin(m_charges[i].theta()) * std::sin(m_charges[j].theta()) * std::cos(m_charges[i].phi() -
 					//m_charges[j].phi()) + std::cos(m_charges[i].theta()) * std::cos(m_charges[j].theta()));
 				r = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2));
-				m_energy += 1 / r; //* m_charges[i].value() * m_charges[j].value() * (4 * ct::PI * ct::epsilon0 * r_jk[i]);
+				m_energy += 1 / r * q1.value() * q2.value(); // * 1 / (4 * ct::PI * ct::epsilon0 * r_jk[i]);
 			}
 		}
 	}
@@ -198,6 +200,93 @@ private:
 
 };
 
+static double potential(double x, double m, double omega)
+{
+	return 0.5 * m * m * omega * omega * x * x;
+}
+
+static double solveODE(double y_0, double dy_0, double x0, double L, double E, double dx, double m, double omega);
+
+static std::vector<std::vector<double>> bracketing(double x0, double dx, double E, double L, double m, double omega)
+{
+	std::vector<std::vector<double>> brackets;
+	double y0 = 0;
+	double y1 = solveODE(y0, 1, x0, L, E, dx, m, omega);
+	while (y1 * y0 > 0)
+	{
+		x0 += dx;
+		y0 = y1;
+		y1 = solveODE(y0, 1, x0, L, E, dx, m, omega);
+	}
+	brackets.push_back({ x0 - dx, x0 });
+	brackets.push_back({ x0, x0 + dx });
+	return brackets;
+}
+
+static std::vector<double> calcDerivatives(const std::vector<double>& y, double x, double E, double m, double omega)
+{
+	std::vector<double> derivatives(2);
+	derivatives[0] = y[1];
+	derivatives[1] = (2 * m / (ct::hbar * ct::hbar)) * (potential(x, m, omega) - E) * y[0];
+
+	return derivatives;
+}
+
+static double solveODE(double y_0, double dy_0, double x0, double L, double E, double dx, double m, double omega)
+{
+	std::vector<double> y = { y_0, dy_0 };
+	double x = x0;
+
+	while (x <= L)
+	{
+		std::vector<double> dPsi = calcDerivatives(y, x, E, m, omega);
+
+		y[0] += dx * dPsi[0];
+		y[1] += dx * dPsi[1];
+
+		x += dx;
+	}
+
+	return y[0];
+}
+
+static std::vector<double> findEnergies(double E, double L, double m, double omega, double tolerance, bool even = true)
+{
+	double x0 = 0;
+	double y0 = 1;
+	double dy0 = 0;
+	if (!even) { y0 = 0; dy0 = 1; }
+    std::vector<std::vector<double>> brackets = bracketing(x0, tolerance, E, L, m, omega);
+    std::vector<double> energies;
+
+    for (const auto& bracket : brackets)
+    {
+        y0 = solveODE(y0, dy0, bracket[0], L, E, tolerance, m, omega);
+        double y1 = solveODE(y0, dy0, bracket[1], L, E, tolerance, m, omega);
+        double x0 = bracket[0];
+        double x1 = bracket[1];
+
+        while (std::abs(x1 - x0) > tolerance)
+        {
+            double x2 = (x0 + x1) / 2;
+            double y2 = solveODE(0, 1, x2, L, E, tolerance, m, omega);
+            if (y0 * y2 < 0)
+            {
+                x1 = x2;
+                y1 = y2;
+            }
+            else
+            {
+                x0 = x2;
+                y0 = y2;
+            }
+        }
+        energies.push_back((x0 + x1) / 2);
+    }
+
+    return energies;
+}
+
 int main()
 {
 #if EXERCISE == 1
@@ -276,4 +365,18 @@ int main()
 	}
 #endif
 
+#ifdef EXERCISE == 4
+	{
+		double m = 1.0, omega = 1.0;
+
+		std::vector<double> k = findEnergies(0, 10, m, omega, 1e-6);
+		nstd_print(k);
+
+#ifdef NDEBUG
+		{
+
+		}
+#endif
+	}
+#endif
 }

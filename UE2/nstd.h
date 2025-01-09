@@ -19,7 +19,7 @@ TO DO:
 	-arrayErase
 -Extend VectorMath to matrices
 -create new Matrix specific functions
-	-Matrix-Vector Product && Matrix-Matrix Product
+	-Matrix-Vector Product && Matrix-Matrix Product - done
 	-diag iterator type? to find and set values on diags and their offsets - done
 -find solution for different type precision
 -add rvalue recognition to print function
