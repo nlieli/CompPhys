@@ -112,7 +112,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\UE1;$(SolutionDir)\Dependencies\fftw\include;$(SolutionDir)\Dependencies\Matplot++\include;$(ProjectDir)\Header Files;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\UE2;$(SolutionDir)\UE1;$(SolutionDir)\Dependencies\fftw\include;$(SolutionDir)\Dependencies\Matplot++\include;$(ProjectDir)\Header Files;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

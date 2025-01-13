@@ -1,9 +1,9 @@
+#include "matplot/matplot.h"
+#include "nstd.h"
 #include <iostream>
 #include <random>
-#include "matplot/matplot.h"
-#include "nstd.h" 
 
-#define EXERCISE 4
+#define EXERCISE 3
 #define nstd_print(var) nstd::print(var, #var)
 
 namespace ct
@@ -201,6 +201,127 @@ private:
 
 };
 
+struct mass
+{
+	double m_mass = 1;
+	std::vector<double> position;
+
+	mass() : position(3, 0.0) {}
+};
+
+struct t_mass : mass
+{
+	std::vector<double> velocity;
+	std::vector<double> acceleration;
+
+	t_mass() : mass(), velocity(3, 0.0), acceleration(3, 0.0) {}
+};
+
+struct C3BP
+{
+	double dt = 1e-3;
+
+	mass m_M1;
+	mass m_M2;
+	t_mass m_m;
+	
+	std::vector<double> omega = { 0, 0, 1 };
+	double mu;
+
+	std::vector<double> r1;
+	std::vector<double> r2;
+
+	std::vector<double> F_g;
+	std::vector<double> F_i;
+	std::vector<double> F_t;
+
+	std::vector<std::vector<double>> trajectory;
+
+	C3BP(const mass& M1, const mass& M2, const t_mass& m) : m_M1(M1), m_M2(M2), m_m(m)
+	{
+		mu = m_M2.m_mass / (m_M1.m_mass + m_M2.m_mass);
+		m_M1.position[0] = -mu;
+		m_M2.position[0] = 1 - mu;
+		trajectory.resize(3);
+
+		trajectory[0].push_back(m_m.position[0]);
+		trajectory[1].push_back(m_m.position[1]);
+		trajectory[2].push_back(m_m.position[2]);
+
+		calculateForces();
+	}
+
+	void calculateForces()
+	{
+		r1 = m_m.position - m_M1.position;
+		r2 = m_m.position - m_M2.position;
+
+		F_g = (mu - 1) * r1 / (std::pow(nstd::norm1dimArray(r1), 3)) - mu * r2 / (std::pow(nstd::norm1dimArray(r2), 3));
+		std::vector<double> temp_vec = nstd::crossProduct(omega, m_m.position);
+		F_i = -2 * nstd::crossProduct(omega, m_m.velocity) - nstd::crossProduct(omega, temp_vec);
+		F_t = F_g + F_i;
+	};
+
+	inline void updatePosition()
+	{
+		m_m.acceleration = F_t;
+		m_m.velocity = m_m.velocity + m_m.acceleration * dt;
+		m_m.position = m_m.position + m_m.velocity * dt;
+		trajectory[0].push_back(m_m.position[0]);
+		trajectory[1].push_back(m_m.position[1]);
+		trajectory[2].push_back(m_m.position[2]);
+		calculateForces();
+	}
+
+	inline void updatePositionRK4()
+	{
+		auto position = m_m.position;
+		auto velocity = m_m.velocity;
+
+		calculateForces();
+		auto k1_v = F_t;                       
+		auto k1_p = velocity;                  
+
+		auto temp_position = position + k1_p * (dt / 2.0);
+		auto temp_velocity = velocity + k1_v * (dt / 2.0);
+		m_m.position = temp_position;
+		m_m.velocity = temp_velocity;
+		calculateForces();
+		auto k2_v = F_t;
+		auto k2_p = temp_velocity;
+
+		temp_position = position + k2_p * (dt / 2.0);
+		temp_velocity = velocity + k2_v * (dt / 2.0);
+		m_m.position = temp_position;
+		m_m.velocity = temp_velocity;
+		calculateForces();
+		auto k3_v = F_t;
+		auto k3_p = temp_velocity;
+
+		temp_position = position + k3_p * dt;
+		temp_velocity = velocity + k3_v * dt;
+		m_m.position = temp_position;
+		m_m.velocity = temp_velocity;
+		calculateForces();
+		auto k4_v = F_t;
+		auto k4_p = temp_velocity;
+
+		m_m.position = position + (k1_p + k2_p * 2.0 + k3_p * 2.0 + k4_p) * (dt / 6.0);
+		m_m.velocity = velocity + (k1_v + k2_v * 2.0 + k3_v * 2.0 + k4_v) * (dt / 6.0);
+
+		trajectory[0].push_back(m_m.position[0]);
+		trajectory[1].push_back(m_m.position[1]);
+		trajectory[2].push_back(m_m.position[2]);
+	}
+
+	void createTrajectory(int numberOfTimeSteps)
+	{
+		for (int i = 0; i < numberOfTimeSteps; ++i)
+			updatePositionRK4();
+	}
+
+};
+
 static double potential(double x, double m, double omega, double lambda)
 {
 	return 0.5 * m * m * omega * omega * x * x + lambda / 24 * std::pow(x, 4);
@@ -255,13 +376,6 @@ static double solveODE(double y_0, double dy_0, double x0, double L, double E, d
 
 	while (x <= L)
 	{
-		//dPsi = calcDerivatives(y, x, E, m, omega);
-
-		//y[0] += dx * dPsi[0];
-		//y[1] += dx * dPsi[1];
-
-		//x += dx;
-
 		// using RK4
         std::vector<double> k1 = calcDerivatives(y, x, E, m, omega, lambda);
 
@@ -400,7 +514,66 @@ int main()
 	}
 #endif
 
-#ifdef EXERCISE == 4
+#if EXERCISE == 3
+	{
+		mass M1;
+		// M1.position = { 0.5, 0, 0 }; // irrelevant
+		M1.m_mass = 2;
+		mass M2;
+		// M2.position = { -0.5, 0, 0 }; // irrelevant
+		M2.m_mass = 1;
+		t_mass m;
+		m.position = { 1, 1, 0 };
+		m.m_mass = 1;
+		m.velocity = { 0, 0.1, 0 };
+
+		C3BP system(M1, M2, m);
+		system.omega[2] = 1e-10;
+		system.dt = 1e-3;
+
+		system.createTrajectory(50000);
+
+#ifdef NDEBUG
+		{
+			using namespace matplot;
+			std::vector<double>& M1_pos = system.m_M1.position;
+			std::vector<double>& M2_pos = system.m_M2.position;
+
+			std::vector<double> M1x = { M1_pos[0] };
+			std::vector<double> M1y = { M1_pos[1] };
+			std::vector<double> M1z = { M1_pos[2] };
+
+			std::vector<double> M2x = { M2_pos[0] };
+			std::vector<double> M2y = { M2_pos[1] };
+			std::vector<double> M2z = { M2_pos[2] };
+
+			std::vector<double>& Tx = system.trajectory[0];
+			std::vector<double>& Ty = system.trajectory[1];
+			std::vector<double>& Tz = system.trajectory[2];
+
+			std::vector<double> Ix = { system.trajectory[0][0] };
+			std::vector<double> Iy = { system.trajectory[1][0] };
+			std::vector<double> Iz = { system.trajectory[2][0] };
+
+			figure();
+			plot3(M1x, M1y, M1z, ".r");
+			hold(on);
+			plot3(M2x, M2y, M2z, ".g");
+			plot3(Ix, Iy, Iz, "ob");
+			plot3(Tx, Ty, Tz, "b");
+
+			double lim = 5;
+			xlim({ -lim, lim });
+			ylim({ -lim, lim });
+			zlim({ -1, 1 });
+			legend("M1", "M2");
+			show();
+		}
+#endif
+	}
+#endif
+
+#if EXERCISE == 4
 	{
 		double m = 1.0, omega = 1.0;
 		double L = 10, tolerance = 1e-10;

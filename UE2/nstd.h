@@ -1,3 +1,4 @@
+
 /*
 TO DO:
 -is_vector_or_array  - done
@@ -36,13 +37,13 @@ TO DO:
 #include <iterator>
 #include <vector>
 #include <optional>
+#include <iostream>
 
 /*
 You may want to disable the overloads since they are part of the global name space
 and thus may interfere with some other functions. To disable set the macro
 DISABLE_OVERLOADS to 1
 */
-#define DISABLE_NSTD_OVERLOADS 0 
 
 namespace nstd
 {
@@ -76,6 +77,7 @@ namespace nstd
 
 	template <typename T, size_t J, size_t K>
 	struct is_n_dim_array < std::array<std::array<T, J>, K>> : std::true_type {};
+
 
 	// utility functions
 	template <typename T>
@@ -506,6 +508,12 @@ namespace nstd
 	}
 
 	template <typename T>
+	double norm1dimArray(const T& container)
+	{
+		return std::sqrt(scalarProduct1dimArray(container, container));
+	}
+
+	template <typename T>
 	std::vector<std::vector<T>> matrixMultiplication(const std::vector<std::vector<T>>& con1, const std::vector<std::vector<T>>& con2)
 	{
 		size_t n1 = con1.size();
@@ -579,11 +587,22 @@ namespace nstd
 		return result;
 	}
 
+	template <typename T>
+	std::vector<T> crossProduct(std::vector<T>& con1, std::vector<T>& con2)
+	{
+		if (con1.size() != 3 && con2.size() != 3) { throw std::runtime_error("Incorrect Size");  }
+		std::vector<T> result(3);
+		for (size_t i = 0; i < con1.size(); ++i)
+			result[i] = con1[(i + 1) % 3] * con2[(i + 2) % 3] - con1[(i + 2) % 3] * con2[(i + 1) % 3];
+
+		return result;
+	}
+
 
 } // end of namespace
 
 // operator overloads
-#if DISABLE_NSTD_OVERLOADS == 0
+#ifndef DISABLE_NSTD_OVERLOADS 
 
 template <typename T>
 T operator+(const T& con1, const T& con2) { return nstd::addNdimArray(con1, con2); }
