@@ -45,6 +45,10 @@ The project relies on the Matplot++ library written by Alan de Freitas for plott
 Matplot++ required, as it already comes packaged and set up with the project. You may visit the Matplot++ GitHub
 page via the following link: https://github.com/alandefreitas/matplotplusplus.
 
+## FFTW
+This project also includes the FFTW library. The library also comes packaged with the project under the Dependencies
+folder. You may visit the homepage for the FFTW project via the following link: https://www.fftw.org/
+
 ## Running the project
 After cloning the GitHub project, you can open the solution file using Visual Studio. Since the Matplot++ library
 only works in Release Mode, you should make sure to change the Visual Studio configuration to Release Mode | x64 before
