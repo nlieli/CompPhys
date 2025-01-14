@@ -101,7 +101,7 @@ To do this, go to:
 Project > Properties and select "All Configurations" in the Configuration drop down menu then go to:
 Configuration Properties > General > C++ Language Standard and select "ISO C++17 Standard (/std:c++17)
 
-# How to run
+# Additional info
 When using the program, you may change the line 39: #define EXERCICE 0 to any of the following values: 0, 11, 12, 13, 2 or 3. This
 selects which section of the program is run and which is not. Specifically, 0 means that the entire program is run, 11 means that
 only the part for exercice 1a) is run and the rest corresponds to 1b), 1c), 2a) and 2b) or 3a) and 3b). There is a similar variable
