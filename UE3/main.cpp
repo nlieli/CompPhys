@@ -4,7 +4,7 @@
 #include <random>
 #include "SF.h"
 
-#define EXERCISE 3
+#define EXERCISE 4
 #define nstd_print(var) nstd::print(var, #var)
 
 namespace ct
@@ -476,7 +476,7 @@ int main()
 {
 #if EXERCISE == 1
 	{
-		const int numCharges = 4;
+		const int numCharges = 6;
 		std::vector<charge> charges;
 		std::random_device rd;
 		std::uniform_real_distribution<double> phiDist(0.0, 2 * ct::PI);
@@ -559,15 +559,15 @@ int main()
 		// M2.position = { -0.5, 0, 0 }; // irrelevant
 		M2.m_mass = 1e5;
 		t_mass m;
-		m.position = { 1, 1, 0 };
+		m.position = { 0.4, 0.8, 0 };
 		m.m_mass = 1;
-		m.velocity = { 0, 0, 0 };
+		m.velocity = { 0, 0.02, 0 };
 
 		C3BP system(M1, M2, m);
 		system.omega[2] = 1;
 		system.dt = 1e-3;
 		std::vector<std::vector<double>> L = system.lagrangePoints();
-		system.setTestinLagrangePoint_x(3);
+		system.setTestinLagrangePoint_x(1);
 
 		system.createTrajectory(50000);
 
@@ -594,18 +594,20 @@ int main()
 			std::vector<double> Iz = { system.trajectory[2][0] };
 
 			figure();
-			plot3(M1x, M1y, M1z, ".r");
+			auto K = plot3(M1x, M1y, M1z, ".r");
+			K->line_width(2.0);
 			hold(on);
 			plot3(M2x, M2y, M2z, ".g");
+			plot3(L[0], L[1], L[2], ".k");
 			plot3(Ix, Iy, Iz, "ob");
 			plot3(Tx, Ty, Tz, "b");
-			plot3(L[0], L[1], L[2], "oy");
 
-			double lim = 5;
+			double lim = 3;
 			xlim({ -lim, lim });
 			ylim({ -lim, lim });
 			zlim({ -1, 1 });
-			legend("M1", "M2","Starting Point", "Trajectory", "Lagrange Points");
+			auto S = legend("M1", "M2", "Lagrange Points");
+			//S->position({ -5.0, -5.0 });
 			show();
 		}
 #endif
