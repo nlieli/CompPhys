@@ -2,6 +2,7 @@
 #include "nstd.h"
 #include <iostream>
 #include <random>
+#include "SF.h"
 
 #define EXERCISE 3
 #define nstd_print(var) nstd::print(var, #var)
@@ -244,11 +245,11 @@ struct C3BP
 		m_M2.position[0] = 1 - mu;
 		trajectory.resize(3);
 
-		trajectory[0].push_back(m_m.position[0]);
-		trajectory[1].push_back(m_m.position[1]);
-		trajectory[2].push_back(m_m.position[2]);
+		//trajectory[0].push_back(m_m.position[0]);
+		//trajectory[1].push_back(m_m.position[1]);
+		//trajectory[2].push_back(m_m.position[2]);
 
-		calculateForces();
+		//calculateForces();
 	}
 
 	void calculateForces()
@@ -320,6 +321,41 @@ struct C3BP
 			updatePositionRK4();
 	}
 
+	std::vector<std::vector<double>> lagrangePoints() const
+	{
+		std::vector<std::vector<double>> LP(3, std::vector<double>(5, 0.0));
+		std::vector<std::vector<double>> quintics = {
+			{ -mu, 2 * mu, -mu, 3 - 2 * mu, mu - 3, 1 },
+			{ -mu, -2 * mu, -mu, 3 - 2 * mu, 3 - mu, 1},
+			{ -mu, 12 + 14 * mu, -24 - 13 * mu, 6 * mu + 19, -7 - mu, 1} };
+
+		for (size_t i = 0; i < quintics.size(); ++i)
+		{
+			std::vector<double> intervals = polyBracketing(quintics[i], -5, 5);
+			LP[0][i] = polyNewtonRaphson(quintics[i], 10, intervals[0]);
+		}
+
+		LP[0][0] = (1 - mu) - LP[0][0];
+		LP[0][1] += 1 - mu;
+		LP[0][2] = -1 - LP[0][2];
+
+		LP[0][3] = std::cos(ct::PI / 3) - mu;
+		LP[1][3] = std::sin(ct::PI / 3);
+
+		LP[0][4] = std::cos(-ct::PI / 3) - mu;
+		LP[1][4] = std::sin(-ct::PI / 3);
+
+		return LP;
+	}
+
+	void setTestinLagrangePoint_x(int x)
+	{
+		if (x < 1 || x > 5) { std::cerr << "\033[1;31m[ERROR]: Lagrange Point must be int from 1 to 5.\033[0m"; throw std::runtime_error("Not a lagrange point"); }
+		--x;
+		std::vector<std::vector<double>> L = lagrangePoints();
+		m_m.position = { L[0][x], L[1][x], L[2][x] };
+		nstd_print(m_m.position);
+	}
 };
 
 static double potential(double x, double m, double omega, double lambda)
@@ -518,18 +554,20 @@ int main()
 	{
 		mass M1;
 		// M1.position = { 0.5, 0, 0 }; // irrelevant
-		M1.m_mass = 2;
+		M1.m_mass = 1e7;
 		mass M2;
 		// M2.position = { -0.5, 0, 0 }; // irrelevant
-		M2.m_mass = 1;
+		M2.m_mass = 1e5;
 		t_mass m;
 		m.position = { 1, 1, 0 };
 		m.m_mass = 1;
-		m.velocity = { 0, 0.1, 0 };
+		m.velocity = { 0, 0, 0 };
 
 		C3BP system(M1, M2, m);
-		system.omega[2] = 1e-10;
+		system.omega[2] = 1;
 		system.dt = 1e-3;
+		std::vector<std::vector<double>> L = system.lagrangePoints();
+		system.setTestinLagrangePoint_x(3);
 
 		system.createTrajectory(50000);
 
@@ -561,12 +599,13 @@ int main()
 			plot3(M2x, M2y, M2z, ".g");
 			plot3(Ix, Iy, Iz, "ob");
 			plot3(Tx, Ty, Tz, "b");
+			plot3(L[0], L[1], L[2], "oy");
 
 			double lim = 5;
 			xlim({ -lim, lim });
 			ylim({ -lim, lim });
 			zlim({ -1, 1 });
-			legend("M1", "M2");
+			legend("M1", "M2","Starting Point", "Trajectory", "Lagrange Points");
 			show();
 		}
 #endif
