@@ -1,7 +1,8 @@
+#include "matplot/matplot.h"
+#include "nstd.h"
 #include <iostream>
 #include <random>
-#include "matplot/matplot.h"
-#include "nstd.h" 
+#include "SF.h"
 
 #define EXERCISE 4
 #define nstd_print(var) nstd::print(var, #var)
@@ -11,15 +12,16 @@ namespace ct
 	constexpr double epsilon0 = 8.854187817e-12;
 	constexpr double PI = 3.14159265359;
 	constexpr double h = 6.62607015e-34;
-	constexpr double hbar = ct::h / (2 * ct::PI);
+	//constexpr double hbar = ct::h / (2 * ct::PI);
+	constexpr double hbar = 1;
 }
 
 struct charge
 {
 	// properties
 private:
-	double m_value = 1;
-	double m_R = 1;
+	double m_value;
+	double m_R;
 	// angles are in rad
 	double m_phi;
 	double m_theta;
@@ -200,98 +202,281 @@ private:
 
 };
 
-static double potential(double x, double m, double omega)
+struct mass
 {
-	return 0.5 * m * m * omega * omega * x * x;
+	double m_mass = 1;
+	std::vector<double> position;
+
+	mass() : position(3, 0.0) {}
+};
+
+struct t_mass : mass
+{
+	std::vector<double> velocity;
+	std::vector<double> acceleration;
+
+	t_mass() : mass(), velocity(3, 0.0), acceleration(3, 0.0) {}
+};
+
+struct C3BP
+{
+	double dt = 1e-3;
+
+	mass m_M1;
+	mass m_M2;
+	t_mass m_m;
+	
+	std::vector<double> omega = { 0, 0, 1 };
+	double mu;
+
+	std::vector<double> r1;
+	std::vector<double> r2;
+
+	std::vector<double> F_g;
+	std::vector<double> F_i;
+	std::vector<double> F_t;
+
+	std::vector<std::vector<double>> trajectory;
+
+	C3BP(const mass& M1, const mass& M2, const t_mass& m) : m_M1(M1), m_M2(M2), m_m(m)
+	{
+		mu = m_M2.m_mass / (m_M1.m_mass + m_M2.m_mass);
+		m_M1.position[0] = -mu;
+		m_M2.position[0] = 1 - mu;
+		trajectory.resize(3);
+
+		//trajectory[0].push_back(m_m.position[0]);
+		//trajectory[1].push_back(m_m.position[1]);
+		//trajectory[2].push_back(m_m.position[2]);
+
+		//calculateForces();
+	}
+
+	void calculateForces()
+	{
+		r1 = m_m.position - m_M1.position;
+		r2 = m_m.position - m_M2.position;
+
+		F_g = (mu - 1) * r1 / (std::pow(nstd::norm1dimArray(r1), 3)) - mu * r2 / (std::pow(nstd::norm1dimArray(r2), 3));
+		std::vector<double> temp_vec = nstd::crossProduct(omega, m_m.position);
+		F_i = -2 * nstd::crossProduct(omega, m_m.velocity) - nstd::crossProduct(omega, temp_vec);
+		F_t = F_g + F_i;
+	};
+
+	inline void updatePosition()
+	{
+		m_m.acceleration = F_t;
+		m_m.velocity = m_m.velocity + m_m.acceleration * dt;
+		m_m.position = m_m.position + m_m.velocity * dt;
+		trajectory[0].push_back(m_m.position[0]);
+		trajectory[1].push_back(m_m.position[1]);
+		trajectory[2].push_back(m_m.position[2]);
+		calculateForces();
+	}
+
+	inline void updatePositionRK4()
+	{
+		auto position = m_m.position;
+		auto velocity = m_m.velocity;
+
+		calculateForces();
+		auto k1_v = F_t;                       
+		auto k1_p = velocity;                  
+
+		auto temp_position = position + k1_p * (dt / 2.0);
+		auto temp_velocity = velocity + k1_v * (dt / 2.0);
+		m_m.position = temp_position;
+		m_m.velocity = temp_velocity;
+		calculateForces();
+		auto k2_v = F_t;
+		auto k2_p = temp_velocity;
+
+		temp_position = position + k2_p * (dt / 2.0);
+		temp_velocity = velocity + k2_v * (dt / 2.0);
+		m_m.position = temp_position;
+		m_m.velocity = temp_velocity;
+		calculateForces();
+		auto k3_v = F_t;
+		auto k3_p = temp_velocity;
+
+		temp_position = position + k3_p * dt;
+		temp_velocity = velocity + k3_v * dt;
+		m_m.position = temp_position;
+		m_m.velocity = temp_velocity;
+		calculateForces();
+		auto k4_v = F_t;
+		auto k4_p = temp_velocity;
+
+		m_m.position = position + (k1_p + k2_p * 2.0 + k3_p * 2.0 + k4_p) * (dt / 6.0);
+		m_m.velocity = velocity + (k1_v + k2_v * 2.0 + k3_v * 2.0 + k4_v) * (dt / 6.0);
+
+		trajectory[0].push_back(m_m.position[0]);
+		trajectory[1].push_back(m_m.position[1]);
+		trajectory[2].push_back(m_m.position[2]);
+	}
+
+	void createTrajectory(int numberOfTimeSteps)
+	{
+		for (int i = 0; i < numberOfTimeSteps; ++i)
+			updatePositionRK4();
+	}
+
+	std::vector<std::vector<double>> lagrangePoints() const
+	{
+		std::vector<std::vector<double>> LP(3, std::vector<double>(5, 0.0));
+		std::vector<std::vector<double>> quintics = {
+			{ -mu, 2 * mu, -mu, 3 - 2 * mu, mu - 3, 1 },
+			{ -mu, -2 * mu, -mu, 3 - 2 * mu, 3 - mu, 1},
+			{ -mu, 12 + 14 * mu, -24 - 13 * mu, 6 * mu + 19, -7 - mu, 1} };
+
+		for (size_t i = 0; i < quintics.size(); ++i)
+		{
+			std::vector<double> intervals = polyBracketing(quintics[i], -5, 5);
+			LP[0][i] = polyNewtonRaphson(quintics[i], 10, intervals[0]);
+		}
+
+		LP[0][0] = (1 - mu) - LP[0][0];
+		LP[0][1] += 1 - mu;
+		LP[0][2] = -1 - LP[0][2];
+
+		LP[0][3] = std::cos(ct::PI / 3) - mu;
+		LP[1][3] = std::sin(ct::PI / 3);
+
+		LP[0][4] = std::cos(-ct::PI / 3) - mu;
+		LP[1][4] = std::sin(-ct::PI / 3);
+
+		return LP;
+	}
+
+	void setTestinLagrangePoint_x(int x)
+	{
+		if (x < 1 || x > 5) { std::cerr << "\033[1;31m[ERROR]: Lagrange Point must be int from 1 to 5.\033[0m"; throw std::runtime_error("Not a lagrange point"); }
+		--x;
+		std::vector<std::vector<double>> L = lagrangePoints();
+		m_m.position = { L[0][x], L[1][x], L[2][x] };
+		nstd_print(m_m.position);
+	}
+};
+
+static double potential(double x, double m, double omega, double lambda)
+{
+	return 0.5 * m * m * omega * omega * x * x + lambda / 24 * std::pow(x, 4);
 }
 
-static double solveODE(double y_0, double dy_0, double x0, double L, double E, double dx, double m, double omega);
+static double solveODE(double y_0, double dy_0, double x0, double L, double E, double m, double omega, double lambda);
 
-static std::vector<std::vector<double>> bracketing(double x0, double dx, double E, double L, double m, double omega)
+static std::vector<std::vector<double>> bracketing(double y_0, double dy_0, double x0, double L, double m, double omega, double lambda, int N)
 {
 	std::vector<std::vector<double>> brackets;
-	double y0 = 0;
-	double y1 = solveODE(y0, 1, x0, L, E, dx, m, omega);
-	while (y1 * y0 > 0)
+	double E0 = 0;
+	double E1;
+	double dE = 1e-1;
+
+	double psi0 = solveODE(y_0, dy_0, x0, L, E0, m, omega, lambda);
+	double psi1;
+
+	int i = 0;
+
+	while (i < N)
 	{
-		x0 += dx;
-		y0 = y1;
-		y1 = solveODE(y0, 1, x0, L, E, dx, m, omega);
+		E1 = E0 + dE;
+		psi1 = solveODE(y_0, dy_0, x0, L, E1, m, omega, lambda);
+
+		if (psi1 * psi0 < 0)
+		{
+			brackets.push_back({ E0, E1 });
+			++i;
+		}
+		psi0 = psi1;
+		E0 = E1;
 	}
-	brackets.push_back({ x0 - dx, x0 });
-	brackets.push_back({ x0, x0 + dx });
+
 	return brackets;
 }
 
-static std::vector<double> calcDerivatives(const std::vector<double>& y, double x, double E, double m, double omega)
+static std::vector<double> calcDerivatives(std::vector<double> y, double x, double E, double m, double omega, double lambda)
 {
 	std::vector<double> derivatives(2);
 	derivatives[0] = y[1];
-	derivatives[1] = (2 * m / (ct::hbar * ct::hbar)) * (potential(x, m, omega) - E) * y[0];
+	derivatives[1] = 2 * m * (potential(x, m, omega, lambda) - E) * y[0] / (ct::hbar * ct::hbar);
 
 	return derivatives;
 }
 
-static double solveODE(double y_0, double dy_0, double x0, double L, double E, double dx, double m, double omega)
+static double solveODE(double y_0, double dy_0, double x0, double L, double E, double m, double omega, double lambda)
 {
 	std::vector<double> y = { y_0, dy_0 };
 	double x = x0;
+	double dx = 1e-3;
+	std::vector<double> dPsi;
 
 	while (x <= L)
 	{
-		std::vector<double> dPsi = calcDerivatives(y, x, E, m, omega);
+		// using RK4
+        std::vector<double> k1 = calcDerivatives(y, x, E, m, omega, lambda);
 
-		y[0] += dx * dPsi[0];
-		y[1] += dx * dPsi[1];
+        std::vector<double> y_temp1 = { y[0] + 0.5 * dx * k1[0], y[1] + 0.5 * dx * k1[1] };
+        std::vector<double> k2 = calcDerivatives(y_temp1, x + 0.5 * dx, E, m, omega, lambda);
 
-		x += dx;
+        std::vector<double> y_temp2 = { y[0] + 0.5 * dx * k2[0], y[1] + 0.5 * dx * k2[1] };
+        std::vector<double> k3 = calcDerivatives(y_temp2, x + 0.5 * dx, E, m, omega, lambda);
+
+        std::vector<double> y_temp3 = { y[0] + dx * k3[0], y[1] + dx * k3[1] };
+        std::vector<double> k4 = calcDerivatives(y_temp3, x + dx, E, m, omega, lambda);
+
+        y[0] += (dx / 6.0) * (k1[0] + 2.0 * k2[0] + 2.0 * k3[0] + k4[0]);
+        y[1] += (dx / 6.0) * (k1[1] + 2.0 * k2[1] + 2.0 * k3[1] + k4[1]);
+
+        x += dx;
 	}
 
 	return y[0];
 }
 
-static std::vector<double> findEnergies(double E, double L, double m, double omega, double tolerance, bool even = true)
+static std::vector<double> findEnergies(double y_0, double dy_0, double x_0, double L, double m, double omega, double lambda, double tolerance, double NumberOfValues)
 {
-	double x0 = 0;
-	double y0 = 1;
-	double dy0 = 0;
-	if (!even) { y0 = 0; dy0 = 1; }
-    std::vector<std::vector<double>> brackets = bracketing(x0, tolerance, E, L, m, omega);
-    std::vector<double> energies;
+	std::vector<std::vector<double>> brackets = bracketing(y_0, dy_0, x_0, L, m, omega, lambda, NumberOfValues);
 
-    for (const auto& bracket : brackets)
-    {
-        y0 = solveODE(y0, dy0, bracket[0], L, E, tolerance, m, omega);
-        double y1 = solveODE(y0, dy0, bracket[1], L, E, tolerance, m, omega);
-        double x0 = bracket[0];
-        double x1 = bracket[1];
+	std::vector<double> energies;
 
-        while (std::abs(x1 - x0) > tolerance)
-        {
-            double x2 = (x0 + x1) / 2;
-            double y2 = solveODE(0, 1, x2, L, E, tolerance, m, omega);
-            if (y0 * y2 < 0)
-            {
-                x1 = x2;
-                y1 = y2;
-            }
-            else
-            {
-                x0 = x2;
-                y0 = y2;
-            }
-        }
-        energies.push_back((x0 + x1) / 2);
-    }
+	double El, Eu;
+	double psiL, psiU;
 
-    return energies;
+	for (const std::vector<double>& bracket : brackets)
+	{
+		El = bracket[0];
+		Eu = bracket[1];
+
+		psiL = solveODE(y_0, dy_0, x_0, L, El, m, omega, lambda);
+		psiU = solveODE(y_0, dy_0, x_0, L, Eu, m, omega, lambda);
+
+		while (std::abs(Eu - El) > tolerance)
+		{
+			double Em = 0.5 * (El + Eu);
+			double psiM = solveODE(y_0, dy_0, x_0, L, Em, m, omega, lambda);
+			if (psiM * psiL < 0)
+			{
+				Eu = Em;
+				psiU = psiM;
+			}
+			else
+			{
+				El = Em;
+				psiL = psiM;
+			}
+		}
+
+		energies.push_back(0.5 * (El + Eu));
+	}
+
+	return energies;
 }
 
 int main()
 {
 #if EXERCISE == 1
 	{
-		const int numCharges = 4;
+		const int numCharges = 6;
 		std::vector<charge> charges;
 		std::random_device rd;
 		std::uniform_real_distribution<double> phiDist(0.0, 2 * ct::PI);
@@ -365,12 +550,80 @@ int main()
 	}
 #endif
 
-#ifdef EXERCISE == 4
+#if EXERCISE == 3
+	{
+		mass M1;
+		// M1.position = { 0.5, 0, 0 }; // irrelevant
+		M1.m_mass = 1e7;
+		mass M2;
+		// M2.position = { -0.5, 0, 0 }; // irrelevant
+		M2.m_mass = 1e5;
+		t_mass m;
+		m.position = { 0.4, 0.8, 0 };
+		m.m_mass = 1;
+		m.velocity = { 0, 0.02, 0 };
+
+		C3BP system(M1, M2, m);
+		system.omega[2] = 1;
+		system.dt = 1e-3;
+		std::vector<std::vector<double>> L = system.lagrangePoints();
+		system.setTestinLagrangePoint_x(1);
+
+		system.createTrajectory(50000);
+
+#ifdef NDEBUG
+		{
+			using namespace matplot;
+			std::vector<double>& M1_pos = system.m_M1.position;
+			std::vector<double>& M2_pos = system.m_M2.position;
+
+			std::vector<double> M1x = { M1_pos[0] };
+			std::vector<double> M1y = { M1_pos[1] };
+			std::vector<double> M1z = { M1_pos[2] };
+
+			std::vector<double> M2x = { M2_pos[0] };
+			std::vector<double> M2y = { M2_pos[1] };
+			std::vector<double> M2z = { M2_pos[2] };
+
+			std::vector<double>& Tx = system.trajectory[0];
+			std::vector<double>& Ty = system.trajectory[1];
+			std::vector<double>& Tz = system.trajectory[2];
+
+			std::vector<double> Ix = { system.trajectory[0][0] };
+			std::vector<double> Iy = { system.trajectory[1][0] };
+			std::vector<double> Iz = { system.trajectory[2][0] };
+
+			figure();
+			auto K = plot3(M1x, M1y, M1z, ".r");
+			K->line_width(2.0);
+			hold(on);
+			plot3(M2x, M2y, M2z, ".g");
+			plot3(L[0], L[1], L[2], ".k");
+			plot3(Ix, Iy, Iz, "ob");
+			plot3(Tx, Ty, Tz, "b");
+
+			double lim = 3;
+			xlim({ -lim, lim });
+			ylim({ -lim, lim });
+			zlim({ -1, 1 });
+			auto S = legend("M1", "M2", "Lagrange Points");
+			//S->position({ -5.0, -5.0 });
+			show();
+		}
+#endif
+	}
+#endif
+
+#if EXERCISE == 4
 	{
 		double m = 1.0, omega = 1.0;
+		double L = 10, tolerance = 1e-10;
+		double lambda = 24;
+		auto E = findEnergies(0, 1, 0, L, m, omega, lambda, tolerance, 5);
+		auto E1 = findEnergies(1, 0, 0, L, m, omega, lambda, tolerance, 5);
+		nstd_print(E);
+		nstd_print(E1);
 
-		std::vector<double> k = findEnergies(0, 10, m, omega, 1e-6);
-		nstd_print(k);
 
 #ifdef NDEBUG
 		{

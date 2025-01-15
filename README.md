@@ -45,6 +45,10 @@ The project relies on the Matplot++ library written by Alan de Freitas for plott
 Matplot++ required, as it already comes packaged and set up with the project. You may visit the Matplot++ GitHub
 page via the following link: https://github.com/alandefreitas/matplotplusplus.
 
+## FFTW
+This project also includes the FFTW library. The library also comes packaged with the project under the Dependencies
+folder. You may visit the homepage for the FFTW project via the following link: https://www.fftw.org/
+
 ## Running the project
 After cloning the GitHub project, you can open the solution file using Visual Studio. Since the Matplot++ library
 only works in Release Mode, you should make sure to change the Visual Studio configuration to Release Mode | x64 before
@@ -97,10 +101,15 @@ To do this, go to:
 Project > Properties and select "All Configurations" in the Configuration drop down menu then go to:
 Configuration Properties > General > C++ Language Standard and select "ISO C++17 Standard (/std:c++17)
 
-# Additional Information
+# Additional info
 When using the program, you may change the line 39: #define EXERCICE 0 to any of the following values: 0, 11, 12, 13, 2 or 3. This
 selects which section of the program is run and which is not. Specifically, 0 means that the entire program is run, 11 means that
-only the part for exercice 1a) is run and the rest corresponds to 1b), 1c), 2a) and 2b) or 3a) and 3b).
+only the part for exercice 1a) is run and the rest corresponds to 1b), 1c), 2a) and 2b) or 3a) and 3b). There is a similar variable
+in the other Projects as well. To run any project, simply open the main file of each assigment (main.cpp in the UE1, UE2 or UE3) 
+project folder and click run. The output will either be in the console or a plot from GNUplot. The plot may take a while to load. 
+Specifically exercise 2.1 takes a long time to load as well, approximately 1.5 minutes. y
+
+
 
 If you cannot get the gnuplot installation to work as intended, you may also run the program in Debug mode. This way, all
 parts of the program related to plotting, are automatically excluded via preprocessor statements. You can then just
