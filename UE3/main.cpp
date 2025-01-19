@@ -4,7 +4,7 @@
 #include <random>
 #include "SF.h"
 
-#define EXERCISE 4
+#define EXERCISE 1
 #define nstd_print(var) nstd::print(var, #var)
 
 namespace ct
@@ -20,7 +20,7 @@ struct charge
 {
 	// properties
 private:
-	double m_value;
+	double m_value = 1;
 	double m_R;
 	// angles are in rad
 	double m_phi;
@@ -32,16 +32,21 @@ public:
 	charge(double phi, double theta, double R = 1, double value = 1) 
 	{
 		m_position.resize(3);
-		updatePosition(phi, theta, R, value);
+		updatePosition(phi, theta, R);
 	}
 
-	void updatePosition(double newPhi, double newTheta, double newR = 1, double newValue = 1)
+	void updatePosition(double newPhi, double newTheta, double newR = 1)
 	{
 		m_phi = newPhi;
 		m_theta = newTheta;
 		m_R = newR;
-		m_value = newValue;
+		//m_value = newValue;
 		updateXYZPos();
+	}
+
+	void changeChargeValue(double newValue)
+	{
+		m_value = newValue;
 	}
 
 	double theta() const { return m_theta; }
@@ -122,7 +127,7 @@ public:
 				//r = std::acos(std::sin(m_charges[i].theta()) * std::sin(m_charges[j].theta()) * std::cos(m_charges[i].phi() -
 					//m_charges[j].phi()) + std::cos(m_charges[i].theta()) * std::cos(m_charges[j].theta()));
 				r = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2));
-				m_energy += 1 / r * q1.value() * q2.value(); // * 1 / (4 * ct::PI * ct::epsilon0 * r_jk[i]);
+				m_energy += 1 / r * q1.value() * q2.value(); // *1 / (4 * ct::PI * ct::epsilon0);
 			}
 		}
 	}
@@ -488,6 +493,8 @@ int main()
 			charges.push_back(newRandomCharge);
 		}
 
+		//charges[0].changeChargeValue(100);
+		
 		chargeDistribution dist(charges);
 		dist.minimizeEnergy();
 
@@ -567,7 +574,7 @@ int main()
 		system.omega[2] = 1;
 		system.dt = 1e-3;
 		std::vector<std::vector<double>> L = system.lagrangePoints();
-		system.setTestinLagrangePoint_x(1);
+		system.setTestinLagrangePoint_x(4);
 
 		system.createTrajectory(50000);
 
