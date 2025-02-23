@@ -9,7 +9,7 @@
 #include "nstd.h"
 
 #define nstd_print(var) nstd::print(var, #var) // calls print with variable name in output
-#define EXERCISE 3
+#define EXERCISE 13 
 
 namespace ct
 {
@@ -212,7 +212,8 @@ int main()
 			plot(data[0]);
 			hold(on);
 			plot(data[1]);
-
+			xlabel("f / Hz");
+			ylabel("Amplitude / 1");
 			show();
 		}
 #endif
@@ -242,8 +243,8 @@ int main()
 		std::reverse(dftTimer.begin(), dftTimer.end());
 		std::reverse(fftTimer.begin(), fftTimer.end());
 
-		std::vector<float> dftTimeSum = cumsumVector(dftTimer);
-		std::vector<float> fftTimeSum = cumsumVector(fftTimer);
+		std::vector<float> dftTimeSum = nstd::cumsumVector(dftTimer);
+		std::vector<float> fftTimeSum = nstd::cumsumVector(fftTimer);
 
 #ifdef NDEBUG
 		{
@@ -254,6 +255,7 @@ int main()
 			plot(fftTimeSum);
 			xlabel("m");
 			ylabel("ms");
+			legend("DFT", "FFT");
 			grid(on);
 			show();
 		}
@@ -269,7 +271,7 @@ int main()
 		int samplingRate = 44100;
 		size_t N = data[0].size();
 
-		std::vector<double> frequency = g(1, N, 0);
+		std::vector<double> frequency = nstd::linspace(1.0, (double)N, 0);
 		frequency = frequency * samplingRate / N;
 
 		std::vector<std::complex<double>> fft = fftw3::fft(data[0]);
@@ -289,6 +291,8 @@ int main()
 			using namespace matplot;
 			figure();
 			plot(frequency, PS);
+			hold(on);
+			
 			xlabel("f / Hz");
 			ylabel("Magnitude / 1");
 			grid(on);

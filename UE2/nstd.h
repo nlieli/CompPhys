@@ -112,7 +112,21 @@ namespace nstd
 		}
 	}
 
-	/*
+    template <typename T>
+    std::vector<T> cumsumVector(std::vector<T> vector)
+    {
+        size_t n = vector.size();
+        T sum = 0;
+        for (size_t i = 0; i < n; ++i)
+        {
+            sum += vector[i];
+            vector[i] = sum;
+        }
+
+        return vector;
+    }
+
+    /*
 	iterator for n x n matrices that goes over diagonals
 	not a standard implementation for an iterator, since
 	the container doesnt provide suitable begin() and end()
