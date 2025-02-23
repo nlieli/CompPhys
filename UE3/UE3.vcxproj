@@ -25,7 +25,11 @@
     <ClCompile Include="SF3.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\UE2\nstd.h" />
     <ClInclude Include="SF3.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
